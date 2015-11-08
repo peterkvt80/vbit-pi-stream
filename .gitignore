@@ -1,3 +1,7 @@
+# gcc intermediates
+*.bak
+*.o
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
