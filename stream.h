@@ -25,10 +25,10 @@
 1) sinks packets from mag.c
 2) Handles packet priority and sequencing
 3) inserts special packets 8/30, databroadcast etc.
-4) sources packets to stdout
+4) sources packets to outputstream.c
 */
 PI_THREAD (Stream);
-#define STREAMBUFFERSIZE 50
-extern bufferpacket streamBuffer[STREAMBUFFERSIZE];
+#define STREAMBUFFERSIZE 20
+extern bufferpacket streamBuffer[1];
 
 #endif

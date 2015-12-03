@@ -31,8 +31,6 @@ void domag(void);
  */
 void magInit(void);
 
-extern bufferpacket magBuffer[8];	// One buffer control block for each magazine
-
-
+extern bufferpacket magBuffer[9];	// One buffer control block for each magazine (plus one for subtitles and databroadcast!(
 
 #endif

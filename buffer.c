@@ -58,7 +58,7 @@ void bufferInit(bufferpacket *bp, char *buf, uint8_t len)
 }
 
 /**bufferPut
- * Put packet pkt onto bufferpacket bp.
+ * \brief Put packet pkt onto bufferpacket bp.
  * \param pkt : Packet to put
  * \param bp : buffer to put the packet onto
  * \return BUFFER_OK if OK BUFFER_FULL if full.
@@ -159,9 +159,9 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 	uint8_t mag;
 	// TODO: Get the template from settings
 	//                      xxXxxxxxxxxxXxxxxxxxxxXxxxxxxxxx
-	// char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
+	char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
 	//char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
-        char template[]={"FRINGEFAX  DAY dd MTH   hh:nn:ss"};
+        //char template[]={"FRINGEFAX  DAY dd MTH   hh:nn:ss"};
 	
 	if (bufferIsFull(dest))	// Quit if destination is full
 		return BUFFER_FULL;
@@ -245,6 +245,9 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			// mask the parity
 			a &= 0x7f;			
 			ptr2[1]=(DehamTable[(uint8_t)a]&0x0f)+'0'; 	// Page (ten)
+			if (ptr2[1]>'9')
+				ptr2[1]=ptr2[1]-'0'-10+'A'; 	// Particularly poor hex conversion algorithm
+
 			a =(uint8_t)pkt[5];
 #ifdef REVERSE
 			a = (a & 0x0F) << 4 | (a & 0xF0) >> 4;
@@ -254,7 +257,8 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			// mask the parity
 			a &= 0x7f;			
 			ptr2[2]=(DehamTable[(uint8_t)a]&0x0f)+'0';	// Page (unit)
-			
+			if (ptr2[2]>'9')
+				ptr2[2]=ptr2[2]-'0'-10+'A'; 	// Particularly poor hex conversion algorithm
 			
 			// TEST
 			b =(uint8_t)pkt[3];

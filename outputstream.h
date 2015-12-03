@@ -21,7 +21,7 @@
 */
 PI_THREAD (OutputStream);
 #define STREAMBUFFERSIZE 50
-extern bufferpacket streamBuffer[STREAMBUFFERSIZE];
+extern bufferpacket streamBuffer[1];
 
 #endif
 

@@ -14,13 +14,15 @@
 
 // The stream buffer is 50 packets
 
-bufferpacket streamBuffer[STREAMBUFFERSIZE];
+#define STREAMS 9
+
+bufferpacket streamBuffer[1];//  
 uint8_t streamPacket[STREAMBUFFERSIZE*PACKETSIZE];
 // The lower the priority number, the faster the magazine runs.
 // This way you can choose which mags are more important.
 //                   mag 8 1 2 3 4 5 6 7
-static char priority[8]={5,1,1,3,3,5,5,9};	// 1=High priority,9=low. Note that priority[0] is mag 8!
-static char priorityCount[8];
+static char priority[STREAMS]={5,2,2,3,3,5,5,9,1};	// 1=High priority,9=low. Note: priority[0] is mag 8, while priority mag[8] is the newfor stream!
+static char priorityCount[STREAMS];
 
 PI_THREAD (Stream)
 {
@@ -30,10 +32,10 @@ PI_THREAD (Stream)
 	uint8_t result;
 	uint8_t holdCount=0;	/// If the entire service is on hold, we need to add lines, either filler or quiet
 	uint8_t field=0;	/// Count fields
-	uint8_t hold[8];	/// If hold is set then we must wait for the next field to reset them
+	uint8_t hold[STREAMS];	/// If hold is set then we must wait for the next field to reset them
 	uint32_t skip=0;	// How many lines we were unable to put real packets on
 	uint8_t packet[PACKETSIZE];	
-	for (i=0;i<8;i++)
+	for (i=0;i<STREAMS;i++)
 	{
 		hold[i]=0;
 		priorityCount[i]=priority[i];
@@ -47,9 +49,19 @@ PI_THREAD (Stream)
 	{
 		// printf("Hello from stream\n");
 		// delayMicroseconds(100);
+		
+		// make it go next. It could pretend to be magazine 9. 
+		// You must not put any pages on that magazine or they may be corrupted.
 
+		// If there is ANYTHING in the subtitle buffer it goes immediately, as long as we are not waiting for the next field
+		if (!bufferIsEmpty(&magBuffer[8]) && !hold[8])
+		{
+			mag=8;
+			priorityCount[0]=32; // Also delay mag 8 for two fields so it doesn't clash
+		}
+		else
 		// Decide which mag can go next
-		for (;priorityCount[mag]>0;mag=(mag+1)%8)
+		for (;priorityCount[mag]>0;mag=(mag+1)%STREAMS)
 		{
 			priorityCount[mag]--;
 		}
@@ -65,7 +77,7 @@ PI_THREAD (Stream)
 		if (line>=16)
 		{
 			line=0;
-			for (i=0;i<8;i++) hold[i]=0;	// Any holds are released now
+			for (i=0;i<STREAMS;i++) hold[i]=0;	// Any holds are released now
 			field++;
 		}	
 		// TODO: Really need to put a switch here to do packet 8/30.
@@ -114,7 +126,6 @@ PI_THREAD (Stream)
 				// Intentional fall through
 			case 0:  // Normal row
 				line++;	// Count up the lines sent
-
 				break;				
 			}
 			// TODO: If ALL fields are on hold we need to output filler or quiet

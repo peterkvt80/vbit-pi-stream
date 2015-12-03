@@ -52,10 +52,10 @@ int r1=0;	// Not actually used, just a dummy arg.
 
 // uint8_t thismag;
 
-bufferpacket magBuffer[8];	// One buffer control block for each magazine
+bufferpacket magBuffer[9];	// One buffer control block for each magazine (plus 1 for out-of-sequence packets like subtitles)
 
 
-uint8_t magPacket[8][PACKETCOUNT][PACKETSIZE];	// 8 threads, 17 packets, 45 bytes per packet  
+uint8_t magPacket[9][PACKETCOUNT][PACKETSIZE];	// 9 threads, 17 packets, 45 bytes per packet  
 
 static pthread_t magThread[8];
 
@@ -440,15 +440,6 @@ void domag(void)
 			// printf("Q page=%s\n",page->filename);
 			if (page)	// If we found a page to transmit
 			{
-				// TX the header
-				//sprintf(header,"P%01d%02x %s",page->mag,page->page,page->filename);
-				// Create the header. Note that we force parallel transmission by ensuring that C11 is clear
-				PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040,header);
-				// The header packet isn't quite finished. stream.c intercepts headers and adds dynamic elements, page, date, network ID etc.
-				
-				while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL)
-					delay(20); 
-
 				str[0]=0;
 				if (!fil)	// Carousel will already be scanned down to the page that we want
 					fil=fopen(page->filename,"r");	// Open the Page file if it is not a carousel
@@ -466,42 +457,43 @@ void domag(void)
 					state=STATE_IDLE;
 				}
 				else	// This is the first output line. Parse it and process it.
-				{
-					// printf("First line is %s\n",str);
-					row=copyOL((char*)packet,str);
-					if (row) // If this happens to be OL,0 then don't process packet
-					{
-						PacketPrefix((uint8_t*)packet, page->mag, row);
-						Parity((char*)packet,5);				
-						//dumpPacket(packet);
-						while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
-					}					
-					state=STATE_HEADER;
+				{					
+					// TX the header
+					//sprintf(header,"P%01d%02x %s",page->mag,page->page,page->filename);
+					// Create the header. Note that we force parallel transmission by ensuring that C11 is clear
+					PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040,header);
+					// The header packet isn't quite finished. stream.c intercepts headers and adds dynamic elements, page, date, network ID etc.
+					
+					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20); 
+						state=STATE_HEADER;
 				}
 			}
 			else
 				state=STATE_IDLE;	// We found nothing to send
 			// Change to sending.
-			// Set some sort of shared variable which says to pause because we are on the header.
 			break;
-		case STATE_HEADER:	// Doing the header (NOT ACTUALLY USED!)
-			// Send the header according to transmission rule: After header, rows can start on next field.
-	
-			// This probably should be a meta-packet that starts with anything that is not CRI.
-			// stream.c will use this to halt the mag until the next field.
+		case STATE_HEADER:	// If regional options are set, send the enhancement packet
+/** @todo I suspect that the page enhancements are reversed or something.
+ *  Also the RE command appears to be in hex which probably isn't what we want.
+ */
 			if (page->region>0 && page->region<=0x0f) // Only send this packet if the page asks for it with a non zero RE command
 			{	
-				printf("Sending page region=%d\n",page->region);
+				// printf("Sending page region=%d\n",page->region);
 				// We need to send the X/28 packet first (maybe???) so here would be a good place to do it.
 				PageEnhancementDataPacket((char*) packet, page->mag, 28,0);
 				int triplet=0;
+
 				// Lets assemble triple 1 ETSI 300706 page 30. Also see section 9.4.2.1
 				// 1..4 Page function. We set this to 0 as a standard teletext page. 
 				// 5..7 Page coding. Set this to zero for 7 bit coding.
-				// 8..14 G0/G2/Nat opt
-				triplet=page->region<<7;
+				// 8..14 G0/G2/Nat opt.  10,9,8 should be set to C12, C13,C14 TODO. Bits are in 14..11
+				triplet+=page->region<<10; // Not reversed
+				//if (page->region & 0x01) triplet|=0x40; // Reverse the bit order and shift up 7
+				//if (page->region & 0x02) triplet|=0x20;
+				//if (page->region & 0x04) triplet|=0x10;
+				//if (page->region & 0x08) triplet|=0x08;
 				// 15..18 Second G0
-				
+
 				SetTriplet((char*) packet, 1, triplet);
 				// Should we also set triplets 1 to 13?
 				for (i=2;i<=13;i++)
@@ -510,8 +502,16 @@ void domag(void)
 				while(bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
 				// dumpPacket(packet);
 			}
-			state=STATE_SENDING;
-			break;
+			// Now we can process the initial row of the page
+			row=copyOL((char*)packet,str);
+			if (row) // If this happens to be OL,0 then don't process packet
+			{
+				PacketPrefix((uint8_t*)packet, page->mag, row);
+				Parity((char*)packet,5);				
+				//dumpPacket(packet);
+				while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
+			}		
+			state=STATE_SENDING;	// Intentional fall through
 		case STATE_SENDING:	// Transmitting rows
 			fgets(str,80,fil);
 			// printf("[domag] Send a row %s\n",str);
@@ -543,10 +543,10 @@ void domag(void)
 				}
 				break;			
 			}
-		}
+		} // state switch
 		delay(1);	// Just something to break up the sequence
 		// TODO: We should really intercept a shutdown and release all the memory
-	}
+	} // while
 } // domag
 
 
@@ -558,7 +558,7 @@ void magInit(void)
 	int i;
 	const int maxThreads=8; 	// should be 8
 	magCount=1;
-	for (i=0;i<8;i++)
+	for (i=0;i<9;i++) // One extra buffer for Newfor
 	{
 		// Set up the buffers, one per thread
 		bufferInit(&magBuffer[i],(char*)&magPacket[i],PACKETCOUNT);

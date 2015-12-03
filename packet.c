@@ -172,13 +172,15 @@ void copyFL(char *packet, char *textline, unsigned char mag)
 } // copyFL
 
 
-/** Check that parity and reverse bits
- * Offset should be 5 for rows, 13 for header)
+/**
+ * @brief Check parity and reverse bits if needed
+ * \param packet The 45 char row
+ * \param Offset is normally 5 for rows, 13 for header
  */
 void Parity(char *packet, uint8_t offset)
 {
 	int i;
-	uint8_t c;
+	//uint8_t c;
 	for (i=offset;i<PACKETSIZE;i++)
 	{		
 		packet[i]=ParTab[(uint8_t)(packet[i]&0x7f)];
@@ -195,7 +197,9 @@ void Parity(char *packet, uint8_t offset)
 	*/
 } // Parity
 
-// Clear entire packet to a value
+/**
+ * @brief Clear entire packet to a value
+ */
 void PacketClear(uint8_t *packet, uint8_t value)
 {
 	uint8_t i;
@@ -203,7 +207,7 @@ void PacketClear(uint8_t *packet, uint8_t value)
 		packet[i]=value;
 }
 
-// Clear enture packet to 0
+// Clear entire packet to 0
 void PacketQuiet(uint8_t *packet)
 {
 	PacketClear(packet,0);
@@ -278,16 +282,19 @@ void PacketHeader(char *packet ,unsigned char mag, unsigned char page, unsigned 
 	// Not sure if these bits are reversed. C5 and C6 are indistinguishable
 	if (control & 0x0002) cbit=0x08;	// C6 Subtitle
 	if (control & 0x0001) cbit|=0x04;	// C5 Newsflash
-	packet[10]=HamTab[(subcode&0x03) | cbit]; // S4 C6, C5
+	
+	// cbit|=0x08; // TEMPORARY!
+ 	packet[10]=HamTab[(subcode&0x03) | cbit]; // S4 C6, C5
 	cbit=0;
 	if (control & 0x0004)  cbit=0x01;	// C7 Suppress Header TODO: Check if these should be reverse order
 	if (control & 0x0008) cbit|=0x02;	// C8 Update
 	if (control & 0x0010) cbit|=0x04;	// C9 Interrupted sequence
 	if (control & 0x0020) cbit|=0x08;	// C10 Inhibit display
+	
 	packet[11]=HamTab[cbit]; // C7 to C10
 	cbit=(control & 0x0380) >> 6;	// Shift the language bits C12,C13,C14. TODO: Check if C12/C14 need swapping. CHECKED OK.
 	if (control & 0x0040) cbit|=0x01;	// C11 serial/parallel
-	packet[12]=HamTab[cbit]; // C11 to C14 (C11=0 is parallel, C2,C13,C14 language)
+	packet[12]=HamTab[cbit]; // C11 to C14 (C11=0 is parallel, C12,C13,C14 language)
 	strncpy(&packet[13],caption,32); // This is dangerously out of order! Need to range check and fill as needed
 	// Stuff the page number in. TODO: make it work with hex numbers etc.
 	p=strstr(packet,"mpp"); 
@@ -343,68 +350,17 @@ void PageEnhancementDataPacket(char *packet, int mag, int row, int designationCo
 	packet[5]=HamTab[(designationCode&0x0f)]; // S1
 }
 
+// Hamming 24/18
+// The incoming triplet should be packed 18 bits of an int 32 representing D1..D18
+// The int is repacked with parity bits  
 void SetTriplet(char *packet, int ix, int triplet)
 {
+	uint8_t t[4];
 	if (ix<1) return;
-	// Set ETSI 300706
-	// The whole packet is byte reversed
-	// This is a very stupid way to calculate it. There is probably
-	// a clever Justin kind of way to do it, but I am not Justin.
-	// printf ("[SetTriplet] encoding triplet=%06x\n",triplet);
-	int d1 =(triplet & 0x000001)>0;
-	int d2 =(triplet & 0x000002)>0;
-	int d3 =(triplet & 0x000004)>0;
-	int d4 =(triplet & 0x000008)>0;
-	int d5 =(triplet & 0x000010)>0;
-	int d6 =(triplet & 0x000020)>0;
-	int d7 =(triplet & 0x000040)>0;
-	int d8 =(triplet & 0x000080)>0;
-	int d9 =(triplet & 0x000100)>0;
-	int d10=(triplet & 0x000200)>0;
-	int d11=(triplet & 0x000400)>0;
-	int d12=(triplet & 0x000800)>0;
-	int d13=(triplet & 0x001000)>0;
-	int d14=(triplet & 0x002000)>0;
-	int d15=(triplet & 0x004000)>0;
-	int d16=(triplet & 0x008000)>0;
-	int d17=(triplet & 0x010000)>0;
-	int d18=(triplet & 0x020000)>0;
-	// printf("[SetTriplet] d12=%01x d11=%01x d10=%01x d9=%01x\n",d12,d11,d10,d9);
-	int p1= 1 ^ d1 ^ d2 ^ d4 ^ d5 ^ d7 ^  d9 ^ d11 ^ d12 ^ d14 ^ d16 ^ d18;
-	int p2= 1 ^ d1 ^ d3 ^ d4 ^ d6 ^ d7 ^ d10 ^ d11 ^ d13 ^ d14 ^ d17 ^ d18;
-	int p3= 1 ^ d2 ^ d3 ^ d4 ^ d8 ^ d9 ^ d10 ^ d11 ^ d15 ^ d16 ^ d17 ^ d18;
-	int p4= 1 ^ d5 ^ d6 ^ d7 ^ d8 ^ d9 ^ d10 ^ d11;
-	int p5= 1 ^ d12 ^ d13 ^ d14 ^ d15 ^ d16 ^ d17 ^ d18;
-	int p6= 1 ^ p1 ^ p2 ^ d1 ^ p3 ^ d2 ^ d3 ^ d4 ^ p4 ^ d5 ^ d6 ^ d7 ^ d8 ^ d9 ^ d10 ^
-	            d11 ^ p5 ^ d12 ^ d13 ^ d14 ^ d15 ^ d16 ^ d17 ^ d18;
-	int result=p1;				// Byte N
-	result=(result << 1) | p2;
-	result=(result << 1) | d1;
-	result=(result << 1) | p3;
-	result=(result << 1) | d2;
-	result=(result << 1) | d3;
-	result=(result << 1) | d4;
-	result=(result << 1) | p4;
-	result=(result << 1) | d5;	// Byte N+1
-	result=(result << 1) | d6;
-	result=(result << 1) | d7;
-	result=(result << 1) | d8;
-	result=(result << 1) | d9;
-	result=(result << 1) | d10;
-	result=(result << 1) | d11;
-	result=(result << 1) | p5;
-	result=(result << 1) | d12;	// Byte N+2
-	result=(result << 1) | d13;
-	result=(result << 1) | d14;
-	result=(result << 1) | d15;
-	result=(result << 1) | d16;
-	result=(result << 1) | d17;
-	result=(result << 1) | p6;
-	char *ch=(char*) &result;
-	// printf ("triplet 1=%02x 2=%02x 3=%02x\n",ch[0],ch[1],ch[2]);
+	vbi_ham24p(t,triplet);
 	// Now stuff the result in the packet
-	packet[ix*3+3]=ch[0];
-	packet[ix*3+4]=ch[1];
-	packet[ix*3+5]=ch[2];
+	packet[ix*3+3]=t[0];
+	packet[ix*3+4]=t[1];
+	packet[ix*3+5]=t[2];
 }
 

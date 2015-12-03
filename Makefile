@@ -23,6 +23,8 @@ OBJ = vbit.o				\
 	outputstream.o \
 	HandleTCPClient.o \
 	delay.o \
+	hamm.o \
+	nu4.o \
 	thread.o
 
 #Below here doesn't need to change

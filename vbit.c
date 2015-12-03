@@ -62,7 +62,8 @@ volatile uint8_t fifoWriteIndex; /// maintains the load index 0..MAXFIFOINDEX-1
  * 	This will handle commands but doesn't do anything ATM.
  * Think this will need to go in a thread
  */
-void runClient(void)
+//void runClient(void)
+PI_THREAD(runClient)
 {
 	// Network stuff from http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoServer.c
     int serverSock;                    /* Socket descriptor for server */
@@ -98,17 +99,22 @@ void runClient(void)
 
 	/* Set the size of the in-out parameter */
 	clntLen = sizeof(echoClntAddr);
+	
+	while(1)
+	{
 
-	/* Wait for a client to connect */
-	if ((clientSock = accept(serverSock, (struct sockaddr *) &echoClntAddr, 
-						   &clntLen)) < 0)
-		DieWithError("accept() failed");
+		/* Wait for a client to connect */
+		if ((clientSock = accept(serverSock, (struct sockaddr *) &echoClntAddr, 
+							   &clntLen)) < 0)
+			DieWithError("accept() failed");
 
-	/* clientSock is connected to a client! */
+		/* clientSock is connected to a client! */
 
-	//printf("Handling client %s\n", inet_ntoa(echoClntAddr.sin_addr));
+		// printf("Handling client %s\n", inet_ntoa(echoClntAddr.sin_addr));
 
-	HandleTCPClient(clientSock);
+		HandleTCPClient(clientSock);
+	}
+	return 0;
 } // runClient
 
 
@@ -116,7 +122,12 @@ int main (/* TODO: add args */)
 {
 	
 	int i;
-
+	
+	InitNu4(); // Prepare the buffers used by Newfor subtitles
+	
+	// Start the network port (commands and subtitles)
+	i=piThreadCreate(runClient);
+	//while(1);
 	
 	// Set up the eight magazine threads
 	magInit();

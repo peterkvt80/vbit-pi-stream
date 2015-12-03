@@ -26,7 +26,11 @@
 #include "mag.h"
 #include "outputstream.h"
 
+// Pi specific
 #include "thread.h"
+
+// Subtitles
+#include "nu4.h"
 
 extern void         delay             (unsigned int howLong) ;
 

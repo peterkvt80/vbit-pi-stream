@@ -13,6 +13,7 @@
 #include "tables.h"
 #include <string.h>
 #include <stdlib.h>     /* strtol */
+#include "hamm.h"
 
 /** copyOL - Copy Output Line
  */
