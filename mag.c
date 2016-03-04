@@ -118,12 +118,13 @@ uint8_t addCarousel(CAROUSEL *c,PAGE *p)
  */
  time_t pageToTransmit(CAROUSEL *c, FILE** fp, PAGE *page,uint8_t mag)
 {
+	const uint16_t MAXLINE=200;
 	time_t t;
 	time_t retval=0;
 	uint8_t i;
 	uint8_t timeInterval=0;
 	uint32_t sc;
-	char str[80];
+	char str[MAXLINE]; // Make this longer than the longest possible description line, because if it is bigger it will mute the page.
 	//printf("K");
 	PAGE p;
 
@@ -154,7 +155,7 @@ uint8_t addCarousel(CAROUSEL *c,PAGE *p)
 			sc=c[i].subcode;	// The existing subcode
 			while (p.subcode<=sc && !feof(*fp))	// Parse the carousel
 			{
-				fgets(str,80,*fp);
+				fgets(str,MAXLINE,*fp);
 				// printf("[pageToTransmit]Parsing %s",str);	// Note: The line already has \n in it
 				if (ParseLine(&p, str))					// The parse failed
 				{
@@ -271,7 +272,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 		carousel[i].time=0;
 		carousel[i].subcode=0;
 	}
-  strcpy(path,"/home/pi/teletext/");	// TODO: Maybe we should use ~/Pages instead?
+  strcpy(path,"/home/pi/Pages/");	// TODO: Maybe we should use ~/Pages instead?
   //printf("Looking for pages in stream %d\n",mag);
   d = opendir(path);
   p=&page;
@@ -334,6 +335,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
  */
 void domag(void)
 {
+	const uint16_t MAXLINE=200;
 	char header[32];
 	uint16_t i;
 	uint8_t txListIndex;	// The current page
@@ -350,7 +352,7 @@ void domag(void)
 	PAGE carPage;
 	
 	CAROUSEL carousel[MAXCAROUSEL];		// Is 16 enough carousels? If not then change this yourself.
-	char str[80];
+	char str[MAXLINE];
 	// Init the transmission list for this magaine
 	for (i=0;i<256;i++)
 		txList[i]=NULL;
@@ -448,7 +450,7 @@ void domag(void)
 				// TODO: If the user changes the page file AND the header doesn't match our stored one,
 				// then we should note this fact and update the packet header.
 				while (strncmp(str,"OL,",3) && !feof(fil))				// scan down to the rows
-					fgets(str,80,fil);
+					fgets(str,MAXLINE,fil);
 
 				if (feof(fil))	// Not found any lines
 				{
@@ -513,7 +515,7 @@ void domag(void)
 			}		
 			state=STATE_SENDING;	// Intentional fall through
 		case STATE_SENDING:	// Transmitting rows
-			fgets(str,80,fil);
+			fgets(str,MAXLINE,fil);
 			// printf("[domag] Send a row %s\n",str);
 			if (str[0]=='O' && str[1]=='L')	// Double check it is OL. It could be FL.
 			{

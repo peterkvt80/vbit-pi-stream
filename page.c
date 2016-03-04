@@ -116,9 +116,9 @@ uint8_t ParseLine(PAGE *page, char *str)
 		}
 		break;
 	//Why don't we decode these entries?
-	// 1) Either we don't need them, or we do need them later but we need to save AVR memory 
+	// 1) Either we don't need them, or we do need them later but historically, we needed to save AVR memory 
 	// Don't need to save memory on Raspberry Pi.
-	case 'M':; // MS - no idea
+	case 'M':; // MS - Minited mask (we don't implement this)
 		break;
 	case 'O':; // OL - output line
 		break;
@@ -161,7 +161,7 @@ uint8_t ParsePage(PAGE *page, char *filename)
 {
 	FILE *file;
 	char *str;
-	const unsigned char MAXLINE=80;
+	const unsigned char MAXLINE=200;
 	char line[MAXLINE];
 	// printf("[Parse page]Started looking at %s\n",filename);
 	// open the page
