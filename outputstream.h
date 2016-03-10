@@ -20,7 +20,7 @@
 2) sources packets to stdout
 */
 PI_THREAD (OutputStream);
-#define STREAMBUFFERSIZE 50
+// #define STREAMBUFFERSIZE 50
 extern bufferpacket streamBuffer[1];
 
 #endif

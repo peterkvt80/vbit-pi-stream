@@ -27,7 +27,7 @@
  */
 void domag(void);
 
-/** magInit - Starts the 8 mag threads
+/** magInit - Starts the 8 mag threads (plus ancillary service buffer)
  */
 void magInit(void);
 

@@ -12,12 +12,15 @@
  */
 #include "stream.h"
 
-// The stream buffer is 50 packets
+// #define _DEBUG_
 
-#define STREAMS 9
+// The stream buffer is 20 packets STREAMBUFFERSIZE
+
+// This should be 9. We want to add the subtitle streams
+#define STREAMS 8
 
 bufferpacket streamBuffer[1];//  
-uint8_t streamPacket[STREAMBUFFERSIZE*PACKETSIZE];
+uint8_t streamPacket[STREAMBUFFERSIZE*PACKETSIZE*2]; // The 2 is extra storage to find out what is making it crash
 // The lower the priority number, the faster the magazine runs.
 // This way you can choose which mags are more important.
 //                   mag 8 1 2 3 4 5 6 7
@@ -44,7 +47,7 @@ PI_THREAD (Stream)
 	bufferInit(streamBuffer,(char*)streamPacket,STREAMBUFFERSIZE);
 	delay(500);	// Give the other threads a chance to get started
 	// Poll the input buffers and hold back until there is data ready to go 
-	for (mag=0;!bufferIsEmpty(&magBuffer[mag]);mag=(mag+1)%8);
+	for (mag=0;!bufferIsEmpty(&magBuffer[mag]);mag=(mag+1)%8) delay(10);
 	while(1)
 	{
 		// printf("Hello from stream\n");
@@ -54,7 +57,7 @@ PI_THREAD (Stream)
 		// You must not put any pages on that magazine or they may be corrupted.
 
 		// If there is ANYTHING in the subtitle buffer it goes immediately, as long as we are not waiting for the next field
-		if (!bufferIsEmpty(&magBuffer[8]) && !hold[8])
+		if (!bufferIsEmpty(&magBuffer[8]) && !hold[8] && FALSE) // subtitle buffer is smashing the stack
 		{
 			mag=8;
 			priorityCount[0]=32; // Also delay mag 8 for two fields so it doesn't clash
@@ -65,8 +68,6 @@ PI_THREAD (Stream)
 		{
 			priorityCount[mag]--;
 		}
-		//printf(" M%d ",mag);
-
 		// This scheme more or less works but there is no guarantee that it stays in sync.
 		// So we need to ensure that FillFIFO knows what this phase is and matches it to the output.
 		// The 7120/7121 DENC only does up to 16 lines on both fields. Line 17 is not available for us :-(
@@ -103,20 +104,20 @@ PI_THREAD (Stream)
 		if (!hold[mag])
 		{
 			holdCount=0;
-			// Pop a packet from a mag and push it to the stream
-			// printf("[Stream] ******* GOT SOMETHING :-) Get mag buffer %d \n",mag);
+			// Pop a packet from a mag and push it to the stream		
 			// dumpPacket(magBuffer[mag].pkt);
 			result=bufferMove(streamBuffer,&(magBuffer[mag]));
+		
 
 			switch (result)
 			{
 			case 3: 	// Buffer full. This is good because it means that we are not holding things up
-				// printf("[Stream] Destination full\n");// Either we are up to date or FIFOFill has stalled. Which one is it? 
+			
 				//delay(1);	// Hold so we can see the message (WiringPi)
 				break;
 			case 4: 	// Source not ready. We expect mag to send us something very soon
 				// If a stream has no pages, this branch will get called a lot
-				// printf("[Stream] Waiting for source\n"); // If this is called then mag has failed.
+				
 				hold[mag]=1;	// Might as well put it in hold. If this isn't here then the mag can grab ALL the packets
 				// delay(1);	// Hold so we can see the error
 				break;
@@ -146,6 +147,7 @@ PI_THREAD (Stream)
 				bufferPut(streamBuffer,(char*)packet);
 			}
 		}
+		// printf("[Stream] mag=%d\n",mag); 
 		if (priority[mag]==0) priority[mag]=1;	// Can't be 0 or that mag will take all the packets
 		priorityCount[mag]=priority[mag];	// Reset the priority for the mag that just went out
 		//else

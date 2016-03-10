@@ -37,11 +37,12 @@
  * Each mag buffers about 50 packets ahead.
  */
 
+// #define _DEBUG_
+ 
 #include "mag.h"
-// Number of packets in a magazine buffer. 17 is an arbitrary number
+// Number of packets in a magazine buffer. 20 is an arbitrary number
 
-
-#define PACKETCOUNT 17
+#define PACKETCOUNT 20
 
 // MAXCAROUSEL is an arbitrary number, the maximum number of carousels per magazine 
 // 16 is a good value. Should not have too many carousels as it slows the main service.
@@ -54,8 +55,8 @@ int r1=0;	// Not actually used, just a dummy arg.
 
 bufferpacket magBuffer[9];	// One buffer control block for each magazine (plus 1 for out-of-sequence packets like subtitles)
 
-
-uint8_t magPacket[9][PACKETCOUNT][PACKETSIZE];	// 9 threads, 17 packets, 45 bytes per packet  
+// The actual packet storage
+uint8_t magPacket[9][PACKETCOUNT][PACKETSIZE];	// 9 threads, 20 packets, 45 bytes per packet  
 
 static pthread_t magThread[8];
 
@@ -273,7 +274,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 		carousel[i].subcode=0;
 	}
   strcpy(path,"/home/pi/Pages/");	// TODO: Maybe we should use ~/Pages instead?
-  //printf("Looking for pages in stream %d\n",mag);
+
   d = opendir(path);
   p=&page;
   if (d)
@@ -324,7 +325,6 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
   }
   else
 	return 1;
-
   return 0;	
 } // getList
 
@@ -350,6 +350,7 @@ void domag(void)
 	time_t txwait=0;
 	uint8_t isCarousel;
 	PAGE carPage;
+	int triplet;
 	
 	CAROUSEL carousel[MAXCAROUSEL];		// Is 16 enough carousels? If not then change this yourself.
 	char str[MAXLINE];
@@ -366,15 +367,17 @@ void domag(void)
 		piUnlock(1);
 		return;
 	}
-	/*
-	 printf("[domag] Carousels found on mag %d\n",mag);
+#ifdef _DEBUG_
 	
 	for (i=0;i<MAXCAROUSEL;i++)
 	{
 		if (carousel[i].page)
+		{
+			printf("[domag] Carousels found on mag %d\n",mag);
 			printf("[domag] mag=%d pageaddr=%d\n",mag,carousel[i]);
+		}
 	}
-	*/
+#endif
 	piUnlock(1);
 	// printf("Mag thread is initialised: mag=%d\n",mag);
 	
@@ -385,8 +388,7 @@ void domag(void)
 	// The mag loop has a page counter that steps through all the pages
 	// There is a state variable which helps step through the file.
 	while(1)
-	{
-		// printf("Here is a mag thread, mag=%d\n",mag);
+	{	
 		while (bufferIsFull(&magBuffer[mag])) delay(20); // ms
 		switch (state)
 		{
@@ -403,7 +405,7 @@ void domag(void)
 				txwait=pageToTransmit(carousel,&fil,&carPage,mag);
 				if (txwait==0)
 				{
-					// printf("[domag] mag=%d NULL time returned. Adding 10 second wait\n",mag);
+					
 					// If we are expecting a carousel but only this happens, then PageToTransmit is broken
 					txwait=time(NULL)+10;					
 				}
@@ -425,21 +427,26 @@ void domag(void)
 					if (txListStart==txListIndex)	// oops. This magazine has nothing to show
 					{
 						state=STATE_BEGIN;	
-						// printf("[domag] Magazine %d contains no pages\n",mag);
+						#ifdef _DEBUG_
+						printf("[domag] Magazine %d contains no pages\n",mag);
+						#endif
 						delay(1000);	// Might as well do nothing most of the time
+						#ifdef _DEBUG_
+						printf("[domag] Delay with no pages. mag=%d\n",mag);
+						#endif
 						break;
 					}				
 				}
-				// printf("[domag] selected file=%s\n",txList[txListIndex]->filename);
+				
 				// Now we have the found the next page we get ready to transmit it.
 				page=txList[txListIndex];		// Get the page object
 			}
 			else
 			{
 				page=&carPage;	// The page is a carousel page
-				// printf("[domag]R %s\n",carPage.filename);
+			
 			}
-			// printf("Q page=%s\n",page->filename);
+			
 			if (page)	// If we found a page to transmit
 			{
 				str[0]=0;
@@ -483,7 +490,7 @@ void domag(void)
 				// printf("Sending page region=%d\n",page->region);
 				// We need to send the X/28 packet first (maybe???) so here would be a good place to do it.
 				PageEnhancementDataPacket((char*) packet, page->mag, 28,0);
-				int triplet=0;
+				triplet=0;
 
 				// Lets assemble triple 1 ETSI 300706 page 30. Also see section 9.4.2.1
 				// 1..4 Page function. We set this to 0 as a standard teletext page. 
@@ -516,7 +523,6 @@ void domag(void)
 			state=STATE_SENDING;	// Intentional fall through
 		case STATE_SENDING:	// Transmitting rows
 			fgets(str,MAXLINE,fil);
-			// printf("[domag] Send a row %s\n",str);
 			if (str[0]=='O' && str[1]=='L')	// Double check it is OL. It could be FL.
 			{
 				row=copyOL((char*)packet,str);
@@ -567,8 +573,8 @@ void magInit(void)
 		// now got to add the packet data itself
 	}
 	for (i=0;i<maxThreads;i++) {
-		magThread[(i+1)%8]=0;
-		pthread_create(&magThread[(i+1)%8],NULL,(void*)domag,(void*)&r1); 	// r1 is just a dummy arg.
+		magThread[(i+1)%maxThreads]=0;
+		pthread_create(&magThread[(i+1)%maxThreads],NULL,(void*)domag,(void*)&r1); 	// r1 is just a dummy arg.
 		// printf("magInit %d done\n",i);
 	}
 } // magInit

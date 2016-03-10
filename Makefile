@@ -4,7 +4,7 @@
 CC=gcc
 
 #Set any compiler flags you want to use (e.g. "-I."), or leave blank
-CFLAGS = -g -O2 -Wall -I.
+CFLAGS = -g -O2 -Wall -fstack-protector-all -Wextra -I.
 
 #Link libraries
 LIBS = -lpthread

@@ -58,10 +58,10 @@ uint8_t copyOL(char *packet, char *textline)
 	int i;
 	char* p;
 	long linenumber;
+	char ch;
 	// Get the line number
 	textline+=3;
-	char ch;
-	linenumber=strtol(textline,NULL,0);	
+	linenumber=strtol(textline,NULL,10);	
 	if (!linenumber) return 0; // Trap OL,0, which I don't think makes any sense but Minited 3xx adds it
 	// xatoi(&textline, &linenumber);
 	//xprintf(PSTR("Line number=%d\n"),(int)linenumber);

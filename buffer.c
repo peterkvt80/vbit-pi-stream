@@ -31,6 +31,8 @@
  * arising out of or in connection with the use or performance of
  * this software.
  ****************************************************************************/
+ 
+//#define _DEBUG_
 
 #include "buffer.h"
 
@@ -51,6 +53,9 @@
  */
 void bufferInit(bufferpacket *bp, char *buf, uint8_t len)
 {
+#ifdef _DEBUG_
+printf("[bufferInit] packets=%d\n",len);
+#endif 
 	bp->count=len;
 	bp->pkt=buf;
 	bp->head=0;
@@ -135,20 +140,20 @@ uint8_t bufferLevel(bufferpacket *bp)
 }
 
  /** buffermove
-  * Pops from buffer b2 and pushes to b1
-  * This might be handy where it comes to multiplexing mag to stream.
-  * \param b1 Destination buffer
-  * \param b2 Source buffer
+  * Pops from buffer src and pushes to dest
+  * This is used to multiplex mag to stream.
+  * \param dest Destination buffer
+  * \param src Source buffer
   * \return BUFFER_OK=OK, BUFFER_HEADER=header, BUFFER_FULL=destination full, BUFFER_EMPTY=source empty
   * We do some stupid stuff: decoding packets that we only coded a fraction of a second ago
   * mainly because we don't pass any other data between threads.
   */
 uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 {
-	char a,b;
+	char a,b; /// Temporary stores to help reverse bytes if the transmission hardware requires it (Vbit-Pi inserter needs reverse. VBIT-Pi-Stream does not.)
 	uint8_t row;
 	uint8_t returnCode=BUFFER_OK;
-	char pkt[PACKETSIZE];
+	char pkt[PACKETSIZE]="MPP CEEFAX 1 DAY dd MTH hh:mm/ss";
 	uint8_t i;
 	// uint8_t c;
 	time_t timer;
@@ -157,8 +162,10 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 	char* ptr;
 	char * ptr2;
 	uint8_t mag;
+	// This is where the header template is defined. You'll have to edit the template line.
+	// Uncomment the template that you want or write your own. Must be 32 characters exactly
 	// TODO: Get the template from settings
-	//                      xxXxxxxxxxxxXxxxxxxxxxXxxxxxxxxx
+	//                xxXxxxxxxxxxXxxxxxxxxxXxxxxxxxxx
 	char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
 	//char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
         //char template[]={"FRINGEFAX  DAY dd MTH   hh:nn:ss"};
@@ -197,6 +204,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 	b=DehamTable[(uint8_t)b];
 	row=a & 0x08;
 	row+=b;
+	
 	// If the row is 0, return the fact that it is an header
 	// In addition put in all the dynamic elements
 	if (!row)	// Format the header here
@@ -222,17 +230,20 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		// Fill the buffer with dummy data. Trust me. It will help with debugging.
 		ptr=&pkt[PACKETSIZE-32];
 		ptr2=template;
-		for (i=0;i<PACKETSIZE;i++)
+		
+		for (i=0;i<(PACKETSIZE-32);i++)
 			// *ptr++=i+'0';	// Copy pattern	
 			*ptr++=*ptr2++;		// Copy the built in template
+	
 		ptr=&pkt[PACKETSIZE-32];	// Reset the packet pointer
 		// Do substitutions. Only allow each one once per header
 		// MPP - Magazine and page number
 		
 		ptr2=strstr(ptr,"MPP");
+		
 		if (ptr2)
 		{
-			
+		
 			//ptr2[0]=(a & 0x07)+'1';	// Mag
 			ptr2[0]=(mag & 0x0f)+'0';	// Mag
 			// ptr2[3]=((mag & 0xf0)>>4) + 'a'; // temp
@@ -315,7 +326,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			strftime(str,10,"%g",timeinfo);
 			ptr2[0]=str[0];
 			ptr2[1]=str[1];
-		}		
+		}			
 
 		strftime(str,9,"%H:%M/%S",timeinfo); // TODO: Use the template
 		//printf("The current time is %s.\n",str);
@@ -339,7 +350,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		}
 		
 		returnCode=BUFFER_HEADER;	// Signal that this is a mag header
-	}
+	}	
 	
 	// Finally send this buffer to the output stream
 	bufferPut(dest,pkt);
