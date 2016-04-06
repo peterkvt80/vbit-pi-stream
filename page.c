@@ -165,7 +165,7 @@ uint8_t ParsePage(PAGE *page, char *filename)
 	char line[MAXLINE];
 	// printf("[Parse page]Started looking at %s\n",filename);
 	// open the page
-	file=fopen(filename,"r");
+	file=fopen(filename,"rb");
 	if (!file)
 	{
 		// printf("[Parse page]Failed to open tti page\n");			
@@ -177,6 +177,16 @@ uint8_t ParsePage(PAGE *page, char *filename)
 	// page->filesize=(unsigned int)file.fsize; // Not sure that Pi needs this
 	// Read a line
 	// printf("[ParsePage]Ready to parse\n");
+	// If the file has a UTF-8 header, we should get rid of it. 
+	char ch;
+	ch=getc(file);
+	if (ch==0xEF)
+	{
+		ch=getc(file); // 0xBB
+		ch=getc(file); // 0xBF
+	}
+	else
+		rewind(file);
 	while (!feof(file))
 	{
 		str=fgets(line,MAXLINE,file);
