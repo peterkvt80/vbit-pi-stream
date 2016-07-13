@@ -83,7 +83,6 @@ uint8_t copyOL(char *packet, char *textline)
 			textline++;
 			ch=((*textline) & 0x1f) | 0x80;	// Turn them into MRG 8 bit escapes
 		}
-		if ((ch!=0x0d) && (ch & 0x7f)) // Do not include \r or null
 		{
 			if ((ch & 0x7f)==0x0a)		
 			{
