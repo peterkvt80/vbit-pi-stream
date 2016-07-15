@@ -1,3 +1,13 @@
+#ifdef WIN32
+#include <windows.h>
+
+void delay (unsigned int howLong)
+{
+  Sleep(howLong);
+}
+
+#else
+
 // START of Gordon Henderson's code
 
 /*
@@ -15,3 +25,5 @@ void delay (unsigned int howLong)
 
   nanosleep (&sleeper, &dummy) ;
 }
+
+#endif

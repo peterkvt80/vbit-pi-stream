@@ -71,14 +71,26 @@ PI_THREAD(runClient)
     struct sockaddr_in echoServAddr; /* Local address */
     struct sockaddr_in echoClntAddr; /* Client address */	
     unsigned short echoServPort;     /* Server port */
-	#ifndef WIN32
-    unsigned int clntLen;            /* Length of client address data structure */
+	#ifdef WIN32
+    int clntLen;                     /* needs to be signed int for winsock */
 	#else
-	int clntLen;                     /* needs to be signed int for winsock */
+	unsigned int clntLen;            /* Length of client address data structure */
 	#endif
 
 	echoServPort = 5570;  /* This is the local port */
 
+	#ifdef WIN32
+	WSADATA wsaData;
+    int iResult;
+	
+	// Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed with error: %d\n", iResult);
+        return 1;
+    }
+	#endif
+	
 	// System initialisations
 	/* Construct local address structure */
     memset(&echoServAddr, 0, sizeof(echoServAddr));   /* Zero out structure */

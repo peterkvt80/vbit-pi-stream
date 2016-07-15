@@ -1,7 +1,12 @@
 #include <stdio.h>      /* for printf() and fprintf() */
 #include <string.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h> /* for recv() and send() */
 #include <unistd.h>     /* for close() */
+#endif
 
 #include "nu4.h"
 
