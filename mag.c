@@ -277,7 +277,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 		carousel[i].time=0;
 		carousel[i].subcode=0;
 	}
-  strcpy(path,"/home/pi/Pages/");	// TODO: Maybe we should use ~/Pages instead?
+  strcpy(path,"./teletext/");	// TODO: Maybe we should use ~/Pages instead?
 
   d = opendir(path);
   p=&page;
@@ -291,6 +291,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 	  {
 		  strcpy(filename,path);
 		  strcat(filename, dir->d_name);
+		  
 		  //printf("stream %d, %s\n", mag, filename);
 		  if (ParsePage(p, filename))
 		  {
@@ -317,14 +318,14 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 				// printf("subcode=%d ",p->subcode);
 				addCarousel(carousel,newpage);
 			}
-			 else 
+			 else {
 				txList[p->page]=newpage;	// Store as a normal non carouselling page
+			 }
 			//printf("[getList]Saved page %s mpp=%01d%02d\n",txList[p->page]->filename,txList[p->page]->mag,txList[p->page]->subpage);
 		  }
 	  }
 	  // TODO: Something wonderful with the PAGE object
     }
-
     closedir(d);
   }
   else
@@ -382,9 +383,9 @@ void domag(void)
 		}
 	}
 #endif
+	delay(400); // EVIL HACK masking a race condition, root cause unknown...
 	piUnlock(1);
 	// printf("Mag thread is initialised: mag=%d\n",mag);
-	
 	// Initialise the magazine state
 	state=STATE_BEGIN;
 	// Start at page 0

@@ -86,8 +86,7 @@ PI_THREAD(runClient)
 	// Initialize Winsock
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != 0) {
-        printf("WSAStartup failed with error: %d\n", iResult);
-        return 1;
+		DieWithError("WSAStartup failed");
     }
 	#endif
 	
@@ -130,7 +129,7 @@ PI_THREAD(runClient)
 
 		HandleTCPClient(clientSock);
 	}
-	return 0;
+	return NULL;
 } // runClient
 
 
@@ -138,6 +137,10 @@ int main (/* TODO: add args */)
 {
 	
 	int i;
+	
+	/* initialize the mutexes we're going to use! */
+	init_mutex(0);
+	init_mutex(1);
 	
 	InitNu4(); // Prepare the buffers used by Newfor subtitles
 	

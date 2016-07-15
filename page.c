@@ -178,7 +178,7 @@ uint8_t ParsePage(PAGE *page, char *filename)
 	// Read a line
 	// printf("[ParsePage]Ready to parse\n");
 	// If the file has a UTF-8 header, we should get rid of it. 
-	char ch;
+	int ch;
 	ch=getc(file);
 	if (ch==0xEF)
 	{

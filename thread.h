@@ -11,5 +11,6 @@
 extern int  piThreadCreate      (void *(*fn)(void *)) ;
 extern void piLock              (int key) ;
 extern void piUnlock            (int key) ;
+extern void init_mutex(int);
 
 #endif
