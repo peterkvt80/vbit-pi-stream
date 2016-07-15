@@ -38,7 +38,7 @@
  */
 
 // #define _DEBUG_
- 
+
 #include "mag.h"
 // Number of packets in a magazine buffer. 20 is an arbitrary number
 

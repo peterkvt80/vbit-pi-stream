@@ -4,10 +4,13 @@
 CC=gcc
 
 #Set any compiler flags you want to use (e.g. "-I."), or leave blank
-CFLAGS = -g -O2 -Wall -fstack-protector-all -Wextra -I.
+CFLAGS = -g -O2 -Wall -fstack-protector-all -Wextra -I. 
 
-#Link libraries
+ifeq ($(OS),Windows_NT)
+LIBS = -lpthread -lwsock32
+else
 LIBS = -lpthread
+endif
 
 #Set any dependant files (e.g. header files) so that if they are edited they cause a re-compile (e.g. "main.h my_sub_functions.h some_definitions_file.h"), or leave blank
 DEPS = pins.h

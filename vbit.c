@@ -71,7 +71,11 @@ PI_THREAD(runClient)
     struct sockaddr_in echoServAddr; /* Local address */
     struct sockaddr_in echoClntAddr; /* Client address */	
     unsigned short echoServPort;     /* Server port */
+	#ifndef WIN32
     unsigned int clntLen;            /* Length of client address data structure */
+	#else
+	int clntLen;                     /* needs to be signed int for winsock */
+	#endif
 
 	echoServPort = 5570;  /* This is the local port */
 
