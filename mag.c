@@ -368,7 +368,9 @@ void domag(void)
 	piLock(1);
 	if (getList(txList,mag,carousel))
 	{
+#ifdef _DEBUG_
 		printf("Could not find pages on stream %1d       \n",mag);
+#endif		
 		piUnlock(1);
 		return;
 	}
@@ -533,6 +535,14 @@ void domag(void)
 				row=copyOL((char*)packet,str);
 				if (row)	// Only insert a valid row
 				{
+					// Special case for system temperature. Put %%%T to get temperature in form tt.t
+					#ifndef WIN32
+					char* i=strstr(packet,"%%%T");
+					if (i) {
+						strncpy(i,get_temp(),4);
+					}
+					#endif
+					// Finish the clock run in etc and parity ready for transmission
 					PacketPrefix(packet,page->mag,row);			
 					Parity((char*)packet,5);
 					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
@@ -587,5 +597,22 @@ void magInit(void)
 		// printf("magInit %d done\n",i);
 	}
 } // magInit
+
+/** get_temp
+ *  Pinchec from raspi-teletext demo.c
+ */
+char* get_temp(void)
+{
+    FILE *fp;
+    char tmp[100];
+    char *pch;
+
+    fp = popen("/usr/bin/vcgencmd measure_temp", "r");
+    fgets(tmp, 99, fp);
+    pclose(fp);
+    pch = strtok (tmp,"=\n");
+    pch = strtok (NULL,"=\n");
+		return pch;
+}
 
 
