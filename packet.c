@@ -148,8 +148,8 @@ void copyFL(char *packet, char *textline, unsigned char mag)
 		// xatoi(&ptr,&nLink);
 		nLink=strtol(ptr,NULL,16);
 		// int nLink =StrToIntDef("0x" + strParams.SubString(1 + i*4,3),0x100);
-
-			
+		if (nLink == 0) nLink = 0x8ff; // turn zero into 8FF to be ignored
+		
 		// calculate the relative magazine
 		char cRelMag=(nLink/0x100 ^ mag);
 		*p++=HamTab[nLink & 0xF];			// page units
