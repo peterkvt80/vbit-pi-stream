@@ -71,10 +71,25 @@ PI_THREAD(runClient)
     struct sockaddr_in echoServAddr; /* Local address */
     struct sockaddr_in echoClntAddr; /* Client address */	
     unsigned short echoServPort;     /* Server port */
-    unsigned int clntLen;            /* Length of client address data structure */
+	#ifdef WIN32
+    int clntLen;                     /* needs to be signed int for winsock */
+	#else
+	unsigned int clntLen;            /* Length of client address data structure */
+	#endif
 
 	echoServPort = 5570;  /* This is the local port */
 
+	#ifdef WIN32
+	WSADATA wsaData;
+    int iResult;
+	
+	// Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+		DieWithError("WSAStartup failed");
+    }
+	#endif
+	
 	// System initialisations
 	/* Construct local address structure */
     memset(&echoServAddr, 0, sizeof(echoServAddr));   /* Zero out structure */
@@ -114,7 +129,7 @@ PI_THREAD(runClient)
 
 		HandleTCPClient(clientSock);
 	}
-	return 0;
+	return NULL;
 } // runClient
 
 
@@ -122,6 +137,10 @@ int main (/* TODO: add args */)
 {
 	
 	int i;
+	
+	/* initialize the mutexes we're going to use! */
+	init_mutex(0);
+	init_mutex(1);
 	
 	InitNu4(); // Prepare the buffers used by Newfor subtitles
 	

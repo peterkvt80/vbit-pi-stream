@@ -6,12 +6,17 @@
 
 // System
 #include <fcntl.h>
+#include <time.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#else
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
-#include <time.h>
 
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

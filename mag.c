@@ -38,7 +38,11 @@
  */
 
 // #define _DEBUG_
- 
+
+#ifdef WIN32
+#include "strcasestr.h"
+#endif
+
 #include "mag.h"
 // Number of packets in a magazine buffer. 20 is an arbitrary number
 
@@ -274,7 +278,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 		carousel[i].time=0;
 		carousel[i].subcode=0;
 	}
-  strcpy(path,"/home/pi/teletext/");	// TODO: Maybe we should use ~/Pages instead?
+  strcpy(path,"./teletext/");	// TODO: Maybe we should use ~/Pages instead?
 
   d = opendir(path);
   p=&page;
@@ -288,6 +292,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 	  {
 		  strcpy(filename,path);
 		  strcat(filename, dir->d_name);
+		  
 		  //printf("stream %d, %s\n", mag, filename);
 		  if (ParsePage(p, filename))
 		  {
@@ -314,14 +319,14 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 				// printf("subcode=%d ",p->subcode);
 				addCarousel(carousel,newpage);
 			}
-			 else 
+			 else {
 				txList[p->page]=newpage;	// Store as a normal non carouselling page
+			 }
 			//printf("[getList]Saved page %s mpp=%01d%02d\n",txList[p->page]->filename,txList[p->page]->mag,txList[p->page]->subpage);
 		  }
 	  }
 	  // TODO: Something wonderful with the PAGE object
     }
-
     closedir(d);
   }
   else
@@ -382,9 +387,9 @@ void domag(void)
 		}
 	}
 #endif
+	delay(400); // EVIL HACK masking a race condition, root cause unknown...
 	piUnlock(1);
 	// printf("Mag thread is initialised: mag=%d\n",mag);
-	
 	// Initialise the magazine state
 	state=STATE_BEGIN;
 	// Start at page 0
@@ -538,6 +543,7 @@ void domag(void)
 					// 
 
 					// Special case for system temperature. Put %%%T to get temperature in form tt.t
+					#ifndef WIN32
 					char* i=strstr((char*)packet,"%%%T");
 					if (i) {
 						get_temp(strtemp);
@@ -557,6 +563,7 @@ void domag(void)
 						strncpy(i,strtemp,15);
 					}
 					
+					#endif
 					// Finish the clock run in etc and parity ready for transmission
 					PacketPrefix(packet,page->mag,row);			
 					Parity((char*)packet,5);
@@ -603,11 +610,17 @@ void magInit(void)
 		// now got to add the packet data itself
 	}
 	for (i=0;i<maxThreads;i++) {
+		#ifdef WIN32
+		magThread[(i+1)%maxThreads].p=0;
+		#else
 		magThread[(i+1)%maxThreads]=0;
+		#endif
 		pthread_create(&magThread[(i+1)%maxThreads],NULL,(void*)domag,(void*)&r1); 	// r1 is just a dummy arg.
 		// printf("magInit %d done\n",i);
 	}
 } // magInit
+
+#ifndef WIN32
 
 /** get_temp
  *  Pinched from raspi-teletext demo.c
@@ -681,6 +694,7 @@ bool get_net(char* str)
 	//return TRUE;
 }
 
+#endif
 
 
 

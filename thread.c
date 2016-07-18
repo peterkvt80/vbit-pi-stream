@@ -60,3 +60,9 @@ void piUnlock (int key)
 {
   pthread_mutex_unlock (&piMutexes [key]) ;
 }
+
+/* init a mutex */
+void init_mutex(int key)
+{
+	pthread_mutex_init (&piMutexes [key], NULL) ;
+}

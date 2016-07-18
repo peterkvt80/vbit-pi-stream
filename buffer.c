@@ -153,7 +153,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 	char a,b; /// Temporary stores to help reverse bytes if the transmission hardware requires it (Vbit-Pi inserter needs reverse. VBIT-Pi-Stream does not.)
 	uint8_t row;
 	uint8_t returnCode=BUFFER_OK;
-	char pkt[PACKETSIZE]="MPP CEEFAX 1 DAY dd MTH hh:mm/ss";
+	char pkt[PACKETSIZE];
 	uint8_t i;
 	// uint8_t c;
 	time_t timer;
@@ -231,7 +231,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		ptr=&pkt[PACKETSIZE-32];
 		ptr2=template;
 		
-		for (i=0;i<(PACKETSIZE-32);i++)
+		for (i=0;i<32;i++)
 			// *ptr++=i+'0';	// Copy pattern	
 			*ptr++=*ptr2++;		// Copy the built in template
 	
