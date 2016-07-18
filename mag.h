@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>
-
+#include <stdbool.h>
 #include <dirent.h> 
 
 #include "thread.h"
@@ -23,6 +23,8 @@
 #define STATE_HEADER	2
 #define STATE_SENDING	3
 
+//#define _DEBUG_
+
 /** domag - Runs a single thread
  */
 void domag(void);
@@ -31,7 +33,10 @@ void domag(void);
  */
 void magInit(void);
 
-char* get_temp(void);
+// System status
+bool get_temp(char* str);
+bool get_time(char* str);
+bool get_net(char* str);
 
 extern bufferpacket magBuffer[9];	// One buffer control block for each magazine (plus one for subtitles and databroadcast!(
 

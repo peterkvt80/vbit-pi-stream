@@ -62,6 +62,7 @@ static pthread_t magThread[8];
 
 static uint8_t magCount=1;	// Ensure that each thread has a different mag number
 
+
 // Carousel stuff
 typedef struct _CAROUSEL_ 
 {
@@ -117,7 +118,7 @@ uint8_t addCarousel(CAROUSEL *c,PAGE *p)
  * \param page : The page object for the selected page
  * \return Time when the carousel page changes. Or if 0, there is no page.
  */
- time_t pageToTransmit(CAROUSEL *c, FILE** fp, PAGE *page,uint8_t mag)
+ time_t pageToTransmit(CAROUSEL *c, FILE** fp, PAGE *page)
 {
 	const uint16_t MAXLINE=200;
 	time_t t;
@@ -351,6 +352,8 @@ void domag(void)
 	uint8_t isCarousel;
 	PAGE carPage;
 	int triplet;
+	// Some working space for manipulating strings
+	char strtemp[100];
 	
 	CAROUSEL carousel[MAXCAROUSEL];		// Is 16 enough carousels? If not then change this yourself.
 	char str[MAXLINE];
@@ -376,7 +379,6 @@ void domag(void)
 		if (carousel[i].page)
 		{
 			printf("[domag] Carousels found on mag %d\n",mag);
-			printf("[domag] mag=%d pageaddr=%d\n",mag,carousel[i]);
 		}
 	}
 #endif
@@ -404,7 +406,7 @@ void domag(void)
 			// Timed carousel pages have priority	
 			if (txwait<time(NULL))	// If we are due to transmit a carousel
 			{
-				txwait=pageToTransmit(carousel,&fil,&carPage,mag);
+				txwait=pageToTransmit(carousel,&fil,&carPage);
 				if (txwait==0)
 				{
 					
@@ -530,11 +532,31 @@ void domag(void)
 				row=copyOL((char*)packet,str);
 				if (row)	// Only insert a valid row
 				{
+				  // Temperature: %%%T : 58.4
+					// Day of week: %%a : Sat
+					// Day of month: 
+					// 
+
 					// Special case for system temperature. Put %%%T to get temperature in form tt.t
-					char* i=strstr(packet,"%%%T");
+					char* i=strstr((char*)packet,"%%%T");
 					if (i) {
-						strncpy(i,get_temp(),4);
+						get_temp(strtemp);
+						strncpy(i,strtemp,4);
 					}
+					// Special case for system time. Put %%%%%%%%%%%%timedate to get temperature in form tt.t
+					i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
+					if (i) {
+						get_time(strtemp);
+						strncpy(i,strtemp,20);
+					}
+					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
+					i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
+					if (i) {
+						// strncpy(i,"not yet working",15);
+						get_net(strtemp);
+						strncpy(i,strtemp,15);
+					}
+					
 					// Finish the clock run in etc and parity ready for transmission
 					PacketPrefix(packet,page->mag,row);			
 					Parity((char*)packet,5);
@@ -588,20 +610,78 @@ void magInit(void)
 } // magInit
 
 /** get_temp
- *  Pinchec from raspi-teletext demo.c
+ *  Pinched from raspi-teletext demo.c
+ * @return Four character temperature in degrees C eg. "45.7"
  */
-char* get_temp(void)
+bool get_temp(char* str)
 {
     FILE *fp;
-    char tmp[100];
     char *pch;
+		char tmp[100];
 
     fp = popen("/usr/bin/vcgencmd measure_temp", "r");
     fgets(tmp, 99, fp);
     pclose(fp);
     pch = strtok (tmp,"=\n");
     pch = strtok (NULL,"=\n");
-		return pch;
+		strncpy(str,pch,5);
+		return TRUE; // @todo
 }
+
+/** get_time
+ *  Pinched from raspi-teletext demo.c
+ * @return Time as 20 characters
+ */
+bool get_time(char* str)
+{
+    time_t rawtime;
+    struct tm *info;
+
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+
+    strftime(str, 21, "\x02%a %d %b\x03%H:%M/%S", info);
+		return TRUE; // @todo
+}
+
+/** get_net
+ *  Pinched from raspi-teletext demo.c
+ * @return network address as 20 characters
+ * Sample response
+ * 3: wlan0    inet 192.168.1.14/24 brd 192.168.1.255 scope global wlan0\       valid_lft forever preferred_lft forever
+ */
+bool get_net(char* str)
+{
+	FILE *fp;
+	char *pch;
+
+	int n;
+	char temp[100];
+	fp = popen("/sbin/ip -o -f inet addr show scope global", "r");
+	fgets(temp, 99, fp);
+	pclose(fp);
+	pch = strtok (temp," \n/");
+	for (n=1; n<4; n++)
+	{
+			pch = strtok (NULL, " \n/");
+	}
+	// If we don't have a connection established, try not to crash
+	if (pch==NULL)
+	{
+		strcpy(str,"IP address????");
+		return FALSE;
+	}
+	strncpy(str,pch,15);
+	return TRUE; // @todo
+	// Can be up to 15 characters long
+	//for (i=strlen(temp2);i<15;i++)
+	//				temp2[i]=' ';
+	//temp2[15]=0;
+	//return TRUE;
+}
+
+
+
 
 
