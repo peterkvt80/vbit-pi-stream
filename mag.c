@@ -559,14 +559,14 @@ void domag(void)
 					}
 					#endif
 					// Special case for system time. Put %%%%%%%%%%%%timedate to get temperature in form tt.t
-					char* i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
+					i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
 					if (i) {
 						get_time(strtemp);
 						strncpy(i,strtemp,20);
 					}
 					#ifndef WIN32
 					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
-					char* i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
+					i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
 					if (i) {
 						// strncpy(i,"not yet working",15);
 						get_net(strtemp);
