@@ -367,6 +367,7 @@ void domag(void)
 	int triplet;
 	// Some working space for manipulating strings
 	char strtemp[100];
+	char *tmpptr;
 	
 	CAROUSEL carousel[MAXCAROUSEL];		// Is 16 enough carousels? If not then change this yourself.
 	char str[MAXLINE];
@@ -552,25 +553,25 @@ void domag(void)
 
 					// Special case for system temperature. Put %%%T to get temperature in form tt.t
 					#ifndef WIN32
-					char* i=strstr((char*)packet,"%%%T");
-					if (i) {
+					tmpptr=strstr((char*)packet,"%%%T");
+					if (tmpptr) {
 						get_temp(strtemp);
-						strncpy(i,strtemp,4);
+						strncpy(tmpptr,strtemp,4);
 					}
 					#endif
 					// Special case for system time. Put %%%%%%%%%%%%timedate to get temperature in form tt.t
-					i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
-					if (i) {
+					tmpptr=strstr((char*) packet,"%%%%%%%%%%%%timedate");
+					if (tmpptr) {
 						get_time(strtemp);
-						strncpy(i,strtemp,20);
+						strncpy(tmpptr,strtemp,20);
 					}
 					#ifndef WIN32
 					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
-					i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
-					if (i) {
-						// strncpy(i,"not yet working",15);
+					tmpptr=strstr((char*)packet,"%%%%%%%%%%%%%%n");
+					if (tmpptr) {
+						// strncpy(tmpptr,"not yet working",15);
 						get_net(strtemp);
-						strncpy(i,strtemp,15);
+						strncpy(tmpptr,strtemp,15);
 					}
 					#endif
 					// Finish the clock run in etc and parity ready for transmission
