@@ -25,6 +25,10 @@
 
 //#define _DEBUG_
 
+#define MAXPATH 132
+
+extern char pagesPath[MAXPATH];
+
 /** domag - Runs a single thread
  */
 void domag(void);

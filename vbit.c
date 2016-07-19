@@ -132,11 +132,17 @@ PI_THREAD(runClient)
 	return NULL;
 } // runClient
 
-
-int main (/* TODO: add args */)
+int main (int argc, char** argv)
 {
 	
 	int i;
+	
+	if(argc > 2){
+		if(!strcmp(argv[1],"--dir")){
+			//printf("got directory %s from command line\n",argv[2]);
+			strncpy(pagesPath, argv[2], MAXPATH-1); /* copy directory string to global */
+		}
+	}
 	
 	/* initialize the mutexes we're going to use! */
 	init_mutex(0);

@@ -44,6 +44,7 @@
 #endif
 
 #include "mag.h"
+
 // Number of packets in a magazine buffer. 20 is an arbitrary number
 
 #define PACKETCOUNT 20
@@ -65,6 +66,8 @@ uint8_t magPacket[9][PACKETCOUNT][PACKETSIZE];	// 9 threads, 20 packets, 45 byte
 static pthread_t magThread[8];
 
 static uint8_t magCount=1;	// Ensure that each thread has a different mag number
+
+char pagesPath[MAXPATH]="./pages/"; // location of tti files. Set a default of ./pages/
 
 
 // Carousel stuff
@@ -267,8 +270,7 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 	PAGE page;
 	PAGE *p;		// Page that we are going to parse
 	PAGE *newpage;
-	char path[132];
-	char filename[132];
+	char filename[MAXPATH];
 	struct dirent *dir;
 	uint8_t i;
 	// Make sure all the carousel entries are NULL
@@ -278,9 +280,8 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 		carousel[i].time=0;
 		carousel[i].subcode=0;
 	}
-  strcpy(path,"./teletext/");	// TODO: Maybe we should use ~/Pages instead?
-
-  d = opendir(path);
+	
+  d = opendir(pagesPath);
   p=&page;
   if (d)
   {
@@ -290,8 +291,15 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 	  // Is it a tti page
 	  if (strcasestr(dir->d_name,".tti") || strcasestr(dir->d_name,".ttix"))
 	  {
-		  strcpy(filename,path);
-		  strcat(filename, dir->d_name);
+		  /* hopefully assemble a filename without a buffer overflow */
+		  strncpy(filename,pagesPath,MAXPATH-1);
+		  i = filename[(strlen(filename)-1)];
+		  if (i != '/' && i != '\\' && strlen(filename) + 1 < MAXPATH)
+			  strcat(filename, "/"); // append missing trailing slash
+		  i = strlen(filename) + strlen(dir->d_name);
+		  if (i < MAXPATH){
+			strncat(filename,dir->d_name, i);
+		  }
 		  
 		  //printf("stream %d, %s\n", mag, filename);
 		  if (ParsePage(p, filename))
