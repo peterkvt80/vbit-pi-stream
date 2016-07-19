@@ -67,7 +67,7 @@ static pthread_t magThread[8];
 
 static uint8_t magCount=1;	// Ensure that each thread has a different mag number
 
-char pagesPath[MAXPATH]="./pages/"; // location of tti files. Set a default of ./pages/
+char pagesPath[MAXPATH]="~/Pages/"; // location of tti files. Set a default of "Pages" in home directory
 
 
 // Carousel stuff
