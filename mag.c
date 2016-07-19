@@ -557,20 +557,21 @@ void domag(void)
 						get_temp(strtemp);
 						strncpy(i,strtemp,4);
 					}
+					#endif
 					// Special case for system time. Put %%%%%%%%%%%%timedate to get temperature in form tt.t
-					i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
+					char* i=strstr((char*) packet,"%%%%%%%%%%%%timedate");
 					if (i) {
 						get_time(strtemp);
 						strncpy(i,strtemp,20);
 					}
+					#ifndef WIN32
 					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
-					i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
+					char* i=strstr((char*)packet,"%%%%%%%%%%%%%%n");
 					if (i) {
 						// strncpy(i,"not yet working",15);
 						get_net(strtemp);
 						strncpy(i,strtemp,15);
 					}
-					
 					#endif
 					// Finish the clock run in etc and parity ready for transmission
 					PacketPrefix(packet,page->mag,row);			
@@ -629,7 +630,6 @@ void magInit(void)
 } // magInit
 
 #ifndef WIN32
-
 /** get_temp
  *  Pinched from raspi-teletext demo.c
  * @return Four character temperature in degrees C eg. "45.7"
@@ -648,6 +648,7 @@ bool get_temp(char* str)
 		strncpy(str,pch,5);
 		return TRUE; // @todo
 }
+#endif
 
 /** get_time
  *  Pinched from raspi-teletext demo.c
@@ -666,6 +667,7 @@ bool get_time(char* str)
 		return TRUE; // @todo
 }
 
+#ifndef WIN32
 /** get_net
  *  Pinched from raspi-teletext demo.c
  * @return network address as 20 characters
@@ -701,9 +703,4 @@ bool get_net(char* str)
 	//temp2[15]=0;
 	//return TRUE;
 }
-
 #endif
-
-
-
-
