@@ -40,6 +40,7 @@ void magInit(void);
 // System status
 bool get_temp(char* str);
 bool get_time(char* str);
+bool get_offset_time(char* str);
 bool get_net(char* str);
 
 extern bufferpacket magBuffer[9];	// One buffer control block for each magazine (plus one for subtitles and databroadcast!(
