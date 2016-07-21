@@ -67,7 +67,7 @@ static pthread_t magThread[8];
 
 static uint8_t magCount=1;	// Ensure that each thread has a different mag number
 
-char pagesPath[MAXPATH]="/home/pi/Pages/"; // location of tti files. Set a default of "Pages" in home directory
+char pagesPath[MAXPATH]="/home/pi/Pages/"; // location of tti files. Set a default of ./pages/
 
 
 // Carousel stuff
@@ -559,11 +559,25 @@ void domag(void)
 						strncpy(tmpptr,strtemp,4);
 					}
 					#endif
-					// Special case for system time. Put %%%%%%%%%%%%timedate to get temperature in form tt.t
+					// Special case for system time. Put %%%%%%%%%%%%timedate to get time and date
 					tmpptr=strstr((char*) packet,"%%%%%%%%%%%%timedate");
 					if (tmpptr) {
 						get_time(strtemp);
 						strncpy(tmpptr,strtemp,20);
+					}
+					// Special case for world time. Put %t<+|-><hh> to get local time HH:MM offset by +/- half hours
+					// eg. %t+2 gives central european time
+					for (;;)
+					{
+						tmpptr=strstr((char*) packet,"%t+");
+						if (!tmpptr) {
+							tmpptr=strstr((char*) packet,"%t-");
+						}
+						if (tmpptr) {
+							get_offset_time(tmpptr);
+						}
+						else
+							break;
 					}
 					#ifndef WIN32
 					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
@@ -666,6 +680,39 @@ bool get_time(char* str)
 
     strftime(str, 21, "\x02%a %d %b\x03%H:%M/%S", info);
 		return TRUE; // @todo
+}
+
+/** get_offset_time
+ * Given a parameter of say %t+02
+ * where str[2] is + or -
+ * str[4:3] is a two digit of half hour offsets from local time (GMT/BST in our case)
+ * @return Local time plus offset as 5 characters in the form 21:30
+ */
+bool get_offset_time(char* str)
+{
+	char strTime[6];
+	// get the time (UTC I think)
+	time_t rawtime;
+	struct tm *info;
+	time( &rawtime );
+
+	// What is our offset in seconds?
+	int offset=((str[3]-'0')*10+str[4]-'0')*30*60; // @todo We really ought to validate this
+	
+	// Is it negative (west of us?)
+	if (str[2]=='-')
+		offset=-offset;
+	else
+		if (str[2]!='+') return false; // Must be + or -
+		
+	// Add the offset to the time value
+	rawtime+=offset;
+
+	info = localtime( &rawtime );
+
+	strftime(strTime, 21, "%H:%M", info);
+	strncpy(str,strTime,5);
+	return TRUE; // @todo
 }
 
 #ifndef WIN32
