@@ -566,7 +566,6 @@ void domag(void)
 						strncpy(tmpptr,strtemp,20);
 					}
 					// Special case for world time. Put %t<+|-><hh> to get local time HH:MM offset by +/- half hours
-					// eg. %t+2 gives central european time
 					for (;;)
 					{
 						tmpptr=strstr((char*) packet,"%t+");
