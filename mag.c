@@ -471,7 +471,7 @@ void domag(void)
 				if (!fil)	// Carousel will already be scanned down to the page that we want
 					fil=fopen(page->filename,"r");	// Open the Page file if it is not a carousel
 				
-				if (fil){ 
+				if (!fil){ 
 					// don't try to access a null file pointer (if file got deleted etc.)
 					state=STATE_IDLE;
 					break;
