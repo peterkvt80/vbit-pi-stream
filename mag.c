@@ -470,31 +470,35 @@ void domag(void)
 				str[0]=0;
 				if (!fil)	// Carousel will already be scanned down to the page that we want
 					fil=fopen(page->filename,"r");	// Open the Page file if it is not a carousel
-				//else
-				if (fil){ // don't try to access a null file pointer (if file got deleted etc.)
-					//	printf("[mag]Carousel filename=%s\n",page->filename);
-					// TODO: If the user changes the page file AND the header doesn't match our stored one,
-					// then we should note this fact and update the packet header.
-					while (strncmp(str,"OL,",3) && !feof(fil))				// scan down to the rows
-						fgets(str,MAXLINE,fil);
+				
+				if (fil){ 
+					// don't try to access a null file pointer (if file got deleted etc.)
+					state=STATE_IDLE;
+					break;
+				}
+					
+				//	printf("[mag]Carousel filename=%s\n",page->filename);
+				// TODO: If the user changes the page file AND the header doesn't match our stored one,
+				// then we should note this fact and update the packet header.
+				while (strncmp(str,"OL,",3) && !feof(fil))				// scan down to the rows
+					fgets(str,MAXLINE,fil);
 
-					if (feof(fil))	// Not found any lines
-					{
-						fclose(fil);
-						fil=NULL;
-						state=STATE_IDLE;
-					}
-					else	// This is the first output line. Parse it and process it.
-					{					
-						// TX the header
-						//sprintf(header,"P%01d%02x %s",page->mag,page->page,page->filename);
-						// Create the header. Note that we force parallel transmission by ensuring that C11 is clear
-						PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040,header);
-						// The header packet isn't quite finished. stream.c intercepts headers and adds dynamic elements, page, date, network ID etc.
-						
-						while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20); 
-							state=STATE_HEADER;
-					}
+				if (feof(fil))	// Not found any lines
+				{
+					fclose(fil);
+					fil=NULL;
+					state=STATE_IDLE;
+				}
+				else	// This is the first output line. Parse it and process it.
+				{					
+					// TX the header
+					//sprintf(header,"P%01d%02x %s",page->mag,page->page,page->filename);
+					// Create the header. Note that we force parallel transmission by ensuring that C11 is clear
+					PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040,header);
+					// The header packet isn't quite finished. stream.c intercepts headers and adds dynamic elements, page, date, network ID etc.
+					
+					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20); 
+						state=STATE_HEADER;
 				}
 			}
 			else
