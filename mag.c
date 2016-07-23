@@ -474,8 +474,9 @@ void domag(void)
 					while (!feof(fil)){ // re-parse the page file to update header
 						fgets(str,MAXLINE,fil);
 						ParseLine(page, str); // TODO: there should probably be some error checking here!
+						if (str[0]=='S' && str[1]=='C') // reached the subcode line
+							break;
 					}
-					rewind(fil); // set fil back to start of page file
 				}
 				
 				if (!fil){ 
