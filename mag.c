@@ -469,7 +469,14 @@ void domag(void)
 			{
 				str[0]=0;
 				if (!fil)	// Carousel will already be scanned down to the page that we want
+				{
 					fil=fopen(page->filename,"r");	// Open the Page file if it is not a carousel
+					while (!feof(fil)){ // re-parse the page file to update header
+						fgets(str,MAXLINE,fil);
+						ParseLine(page, str); // TODO: there should probably be some error checking here!
+					}
+					rewind(fil); // set fil back to start of page file
+				}
 				
 				if (!fil){ 
 					// don't try to access a null file pointer (if file got deleted etc.)
@@ -478,8 +485,6 @@ void domag(void)
 				}
 					
 				//	printf("[mag]Carousel filename=%s\n",page->filename);
-				// TODO: If the user changes the page file AND the header doesn't match our stored one,
-				// then we should note this fact and update the packet header.
 				while (strncmp(str,"OL,",3) && !feof(fil))				// scan down to the rows
 					fgets(str,MAXLINE,fil);
 
