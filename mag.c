@@ -546,7 +546,9 @@ void domag(void)
 			if (row) // If this happens to be OL,0 then don't process packet
 			{
 				PacketPrefix((uint8_t*)packet, page->mag, row);
-				Parity((char*)packet,5);				
+				if (row < 26){ // don't mess with parity for packets that would be hammed
+					Parity((char*)packet,5);
+				}
 				//dumpPacket(packet);
 				while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
 			}		
@@ -601,7 +603,9 @@ void domag(void)
 					#endif
 					// Finish the clock run in etc and parity ready for transmission
 					PacketPrefix(packet,page->mag,row);			
-					Parity((char*)packet,5);
+					if (row < 26){ // don't mess with parity for packets that would be hammed
+						Parity((char*)packet,5);
+					}
 					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
 				}
 			}
