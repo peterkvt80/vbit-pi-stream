@@ -471,7 +471,7 @@ void domag(void)
 				if (!fil)	// Carousel will already be scanned down to the page that we want
 				{
 					fil=fopen(page->filename,"r");	// Open the Page file if it is not a carousel
-					while (!feof(fil)){ // re-parse the page file to update header
+					while (fil && !feof(fil)){ // re-parse the page file to update header
 						fgets(str,MAXLINE,fil);
 						ParseLine(page, str); // TODO: there should probably be some error checking here!
 						if (str[0]=='S' && str[1]=='C') // reached the subcode line
