@@ -4,7 +4,7 @@
 CC=gcc
 
 #Set any compiler flags you want to use (e.g. "-I."), or leave blank
-CFLAGS = -g -O2 -Wall -fstack-protector-all -Wextra -I. 
+CFLAGS = -g -O2 -Wall -fstack-protector-all -Wextra -I.
 
 ifeq ($(OS),Windows_NT)
 LIBS = -lpthread -lwsock32
@@ -16,9 +16,9 @@ endif
 DEPS = pins.h
 
 ifeq ($(OS),Windows_NT)
-OBJ = strcasestr.o vbit.o packet.o tables.o stream.o mag.o buffer.o page.o outputstream.o HandleTCPClient.o delay.o hamm.o nu4.o thread.o
+OBJ = strcasestr.o vbit.o packet.o tables.o stream.o mag.o buffer.o page.o outputstream.o HandleTCPClient.o delay.o hamm.o nu4.o thread.o settings.o
 else
-OBJ = vbit.o packet.o tables.o stream.o mag.o buffer.o page.o outputstream.o HandleTCPClient.o delay.o hamm.o nu4.o thread.o
+OBJ = vbit.o packet.o tables.o stream.o mag.o buffer.o page.o outputstream.o HandleTCPClient.o delay.o hamm.o nu4.o thread.o settings.o
 endif
 
 #Below here doesn't need to change

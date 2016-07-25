@@ -36,6 +36,9 @@
 
 #include "buffer.h"
 
+// This is where the default header template is defined. Must be 32 characters exactly
+char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"}; 
+
 // Byte reverser
 // Either Define this for VBIT
 // or Comment it out for raspi-teletext
@@ -54,7 +57,7 @@
 void bufferInit(bufferpacket *bp, char *buf, uint8_t len)
 {
 #ifdef _DEBUG_
-printf("[bufferInit] packets=%d\n",len);
+fprintf(stderr,"[bufferInit] packets=%d\n",len);
 #endif 
 	bp->count=len;
 	bp->pkt=buf;
@@ -162,13 +165,6 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 	char* ptr;
 	char * ptr2;
 	uint8_t mag;
-	// This is where the header template is defined. You'll have to edit the template line.
-	// Uncomment the template that you want or write your own. Must be 32 characters exactly
-	// TODO: Get the template from settings
-	//                xxXxxxxxxxxxXxxxxxxxxxXxxxxxxxxx
-	char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
-	//char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"};
-        //char template[]={"FRINGEFAX  DAY dd MTH   hh:nn:ss"};
 	
 	if (bufferIsFull(dest))	// Quit if destination is full
 		return BUFFER_FULL;

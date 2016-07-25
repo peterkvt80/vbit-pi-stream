@@ -381,7 +381,7 @@ void domag(void)
 	if (getList(txList,mag,carousel))
 	{
 #ifdef _DEBUG_
-		printf("Could not find pages on stream %1d       \n",mag);
+		fprintf(stderr,"Could not find pages on stream %1d       \n",mag);
 #endif		
 		piUnlock(1);
 		return;
@@ -392,7 +392,7 @@ void domag(void)
 	{
 		if (carousel[i].page)
 		{
-			printf("[domag] Carousels found on mag %d\n",mag);
+			fprintf(stderr,"[domag] Carousels found on mag %d\n",mag);
 		}
 	}
 #endif
@@ -446,11 +446,11 @@ void domag(void)
 					{
 						state=STATE_BEGIN;	
 						#ifdef _DEBUG_
-						printf("[domag] Magazine %d contains no pages\n",mag);
+						fprintf(stderr,"[domag] Magazine %d contains no pages\n",mag);
 						#endif
 						delay(1000);	// Might as well do nothing most of the time
 						#ifdef _DEBUG_
-						printf("[domag] Delay with no pages. mag=%d\n",mag);
+						fprintf(stderr,"[domag] Delay with no pages. mag=%d\n",mag);
 						#endif
 						break;
 					}				

@@ -30,6 +30,7 @@
 #include "stream.h"
 #include "mag.h"
 #include "outputstream.h"
+#include "settings.h"
 
 // Pi specific
 #include "thread.h"

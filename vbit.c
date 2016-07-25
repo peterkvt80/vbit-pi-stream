@@ -136,12 +136,39 @@ int main (int argc, char** argv)
 {
 	
 	int i;
+	char filename[MAXPATH];
 	
 	if(argc > 2){
 		if(!strcmp(argv[1],"--dir")){
-			//printf("got directory %s from command line\n",argv[2]);
+			#ifdef _DEBUG_
+			fprintf(stderr,"got directory %s from command line\n",argv[2]);
+			#endif
 			strncpy(pagesPath, argv[2], MAXPATH-1); /* copy directory string to global */
 		}
+	}
+	
+	// construct default config file filename from pages directory and default config file name
+	// TODO: allow specifying any file from command line
+	strncpy(filename,pagesPath,MAXPATH-1);
+	i = filename[(strlen(filename)-1)];
+	if (i != '/' && i != '\\' && strlen(filename) + 1 < MAXPATH)
+		strcat(filename, "/"); // append missing trailing slash
+	i = strlen(filename) + strlen(CONFIGFILE);
+	if (i < MAXPATH){
+		strncat(filename,CONFIGFILE, i);
+	}
+	#ifdef _DEBUG_
+	fprintf(stderr,"using config file %s\n",filename);
+	#endif
+	
+	i = readConfigFile(filename); // read in config from config file
+	switch (i){
+		case NOCONFIG:
+			fprintf(stderr,"No config file found. Using default settings.\n");
+			break;
+		case BADCONFIG:
+			fprintf(stderr,"Config file contains invalid settings. Exiting.\n");
+			return 1;
 	}
 	
 	/* initialize the mutexes we're going to use! */
@@ -176,7 +203,7 @@ int main (int argc, char** argv)
 	while (1)
 	{
 	}
-	puts("Finished\n"); // impossible to get here
+	fputs("Finished\n",stderr); // impossible to get here
 	return 1;
 }
 
