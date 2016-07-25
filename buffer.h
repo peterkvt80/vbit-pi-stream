@@ -37,6 +37,8 @@ typedef struct  {
 	uint8_t tail;		// Tail of the buffer (next to pop)
 } bufferpacket;
 
+extern char headerTemplate[]; // template string for generating header packets
+
 /* meta packet values */
 //#define META_PACKET_HEADER 0
 //#define META_PACKET_ODD_START 1

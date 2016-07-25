@@ -167,7 +167,7 @@ int main (int argc, char** argv)
 			fprintf(stderr,"No config file found. Using default settings.\n");
 			break;
 		case BADCONFIG:
-			fprintf(stderr,"Config file contains invalid settings. Exiting.\n");
+			fprintf(stderr,"Config file contains invalid setting: %s\n",configErrorString);
 			return 1;
 	}
 	

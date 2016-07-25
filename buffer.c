@@ -37,7 +37,7 @@
 #include "buffer.h"
 
 // This is where the default header template is defined. Must be 32 characters exactly
-char template[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"}; 
+char headerTemplate[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"}; 
 
 // Byte reverser
 // Either Define this for VBIT
@@ -225,7 +225,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		// What are we going to write? The last 32 bytes of the header. The first 8 bytes are for control flags and stuff.
 		// Fill the buffer with dummy data. Trust me. It will help with debugging.
 		ptr=&pkt[PACKETSIZE-32];
-		ptr2=template;
+		ptr2=headerTemplate;
 		
 		for (i=0;i<32;i++)
 			// *ptr++=i+'0';	// Copy pattern	
