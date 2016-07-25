@@ -28,10 +28,11 @@ int parseConfigLine(char *configLine){
 	/* Function to deal with anything we find in a config file */
 	/* If we have a lot of options this could turn into one gigantic pile of if statements which I suspect is not the correct way to go about writing a file parser... */
 	
+	if (!strtok(configLine, "\r\n")) // chop off any newline charaters
+		return 0; // ignore blank lines
+	
 	if(configLine[0] == ';')
 		return 0; // just ignore any line starting with ; as a comment
-	
-	strtok(configLine, "\r\n"); // chop off any newline charaters
 	
 	if(!strncmp(configLine, "header_template=", 16)){
 		// found a header template, try to copy 32 bytes into the bufferMove's template
