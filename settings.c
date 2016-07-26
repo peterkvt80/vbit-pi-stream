@@ -1,8 +1,21 @@
 #include "settings.h"
 
+char headerTemplate[33]; 
+
+void initConfigDefaults(void){
+	/* keep initialisation of defaults all in one place */
+	
+	// This is where the default header template is defined.
+	sprintf(headerTemplate," VBIT-PI %%%%# %%%%a %%d %%%%b%c%%H:%%M/%%S",0x83); // include alpha yellow code
+	
+	
+}
+
 int readConfigFile(char *filename){
 	FILE *file;
 	char str[MAXLINE]; // may as well use the same max line length as the tti files
+	
+	initConfigDefaults(); // first set the default values that config file will override
 	
 	file=fopen(filename,"rb");
 	if (!file) return NOCONFIG; // no such file - keep default settings
@@ -10,7 +23,7 @@ int readConfigFile(char *filename){
 	/* TODO: invent a simple config file syntax and parse it! */
 	while (file && !feof(file)){
 		if (!fgets(str,MAXLINE,file)) // read a line
-			break; // end if read failed
+			break; // end if read failed 
 		if (parseConfigLine(str)){ // split parsing out to another function
 			// if parsing line failed just bail out
 			fclose(file);

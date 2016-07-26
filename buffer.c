@@ -36,9 +36,6 @@
 
 #include "buffer.h"
 
-// This is where the default header template is defined. Must be 32 characters exactly
-char headerTemplate[]={"MPP CEEFAX 1 DAY dd MTH hh:mm/ss"}; 
-
 // Byte reverser
 // Either Define this for VBIT
 // or Comment it out for raspi-teletext
@@ -235,7 +232,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		// Do substitutions. Only allow each one once per header
 		// MPP - Magazine and page number
 		
-		ptr2=strstr(ptr,"MPP");
+		ptr2=strstr(ptr,"%%#");
 		
 		if (ptr2)
 		{
@@ -282,7 +279,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 		timer=time(NULL);
 		timeinfo=localtime(&timer);	// This gets local time.
 
-		ptr2=strstr(ptr,"DAY");	// Tue
+		ptr2=strstr(ptr,"%%a");	// Tue
 		if (ptr2)
 		{
 			strftime(str,10,"%a",timeinfo);
@@ -291,7 +288,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			ptr2[2]=str[2];
 		}
 			
-		ptr2=strstr(ptr,"MTH"); // Jan
+		ptr2=strstr(ptr,"%%b"); // Jan
 		if (ptr2)
 		{
 			strftime(str,10,"%b",timeinfo);
@@ -300,38 +297,75 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			ptr2[2]=str[2];
 		}
 		
-		ptr2=strstr(ptr,"dd");	// day of month 24
+		ptr2=strstr(ptr,"%d");	// day of month with leading zero
 		if (ptr2)
 		{
 			strftime(str,10,"%d",timeinfo);
 			ptr2[0]=str[0];
 			ptr2[1]=str[1];
-		}		
-
-		ptr2=strstr(ptr,"mm");	// month number with leading 0
+		}
+		
+		ptr2=strstr(ptr,"%e");	// day of month with no leading zero
 		if (ptr2)
 		{
-			strftime(str,10,"%d",timeinfo);
+			#ifndef WIN32
+			strftime(str,10,"%e",timeinfo);
+			ptr2[0]=str[0];
+			#else
+			strftime(str,10,"%d",timeinfo); // mingw doesn't know %e
+			ptr2[0]=' ';
+			#endif
+			ptr2[1]=str[1];
+		}		
+
+		ptr2=strstr(ptr,"%m");	// month number with leading 0
+		if (ptr2)
+		{
+			strftime(str,10,"%m",timeinfo);
 			ptr2[0]=str[0];
 			ptr2[1]=str[1];
 		}		
 
-		ptr2=strstr(ptr,"yy");	// year. 2 digits
+		ptr2=strstr(ptr,"%g");	// year. 2 digits
 		if (ptr2)
 		{
-			strftime(str,10,"%g",timeinfo);
+			strftime(str,10,"%g",timeinfo); // TODO: mingw support
 			ptr2[0]=str[0];
 			ptr2[1]=str[1];
-		}			
+		}
+		
+		ptr2=strstr(ptr,"%H");	// hour.
+		if (ptr2)
+		{
+			strftime(str,10,"%H",timeinfo);
+			ptr2[0]=str[0];
+			ptr2[1]=str[1];
+		}
+		
+		ptr2=strstr(ptr,"%M");	// minutes.
+		if (ptr2)
+		{
+			strftime(str,10,"%M",timeinfo);
+			ptr2[0]=str[0];
+			ptr2[1]=str[1];
+		}
+		
+		ptr2=strstr(ptr,"%S");	// seconds.
+		if (ptr2)
+		{
+			strftime(str,10,"%S",timeinfo);
+			ptr2[0]=str[0];
+			ptr2[1]=str[1];
+		}
 
-		strftime(str,9,"%H:%M/%S",timeinfo); // TODO: Use the template
+		//strftime(str,9,"%H:%M/%S",timeinfo); // TODO: Use the template
 		//printf("The current time is %s.\n",str);
 		// This code below is the old clock stuff (locked to video)
-		strncpy(&pkt[37],str,8);
+		//strncpy(&pkt[37],str,8);
 		// sprintf(&pkt[37],"%02d:%02d:%02d",hours,mins,secs);
 		// Parity(pkt,30);  <-- We need parity, but this kills it!
 		// Slightly changed version of Parity()
-		pkt[36]=0x83; // Yellow text
+		//pkt[36]=0x83; // Yellow text
 
 		for (i=PACKETSIZE-32;i<PACKETSIZE;i++)
 		{			

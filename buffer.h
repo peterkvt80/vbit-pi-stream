@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "settings.h"
+
 #include "packet.h"
 // Buffer structures are first packet, last packet, head and tail index
 // Access methods init, push, pop, isempty,isfull
@@ -36,8 +38,6 @@ typedef struct  {
 	uint8_t head;		// The head of the buffer (next to push)
 	uint8_t tail;		// Tail of the buffer (next to pop)
 } bufferpacket;
-
-extern char headerTemplate[]; // template string for generating header packets
 
 /* meta packet values */
 //#define META_PACKET_HEADER 0
