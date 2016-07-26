@@ -13,7 +13,7 @@ void initConfigDefaults(void){
 
 int readConfigFile(char *filename){
 	FILE *file;
-	char str[MAXLINE]; // may as well use the same max line length as the tti files
+	char str[MAXCONFLINE];
 	
 	initConfigDefaults(); // first set the default values that config file will override
 	
@@ -22,7 +22,7 @@ int readConfigFile(char *filename){
 	
 	/* TODO: invent a simple config file syntax and parse it! */
 	while (file && !feof(file)){
-		if (!fgets(str,MAXLINE,file)) // read a line
+		if (!fgets(str,MAXCONFLINE,file)) // read a line
 			break; // end if read failed 
 		if (parseConfigLine(str)){ // split parsing out to another function
 			// if parsing line failed just bail out
