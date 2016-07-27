@@ -1,0 +1,67 @@
+#!/bin/sh
+
+#vbit page streaming 
+sudo apt-get update
+sudo apt-get install git
+git clone https://github.com/peterkvt80/vbit-pi-stream.git /home/pi/vbit
+cd /home/pi/vbit
+make
+
+#pages
+mkdir /home/pi/Pages
+mkdir /home/pi/teletext
+cd /home/pi/Pages
+rm -f pages.zip
+wget -O pages.zip https://www.dropbox.com/sh/ue14zczs71zemuh/AAC_8OPbgZQCLb9HT4XwtEC7a?dl=1
+unzip -o pages.zip
+
+#raspi-teletext transmission
+git clone https://github.com/ali1234/raspi-teletext.git /home/pi/raspi-teletext-master/
+cd /home/pi/raspi-teletext-master/
+make clean
+make
+
+# some useful scripts
+cat > /home/pi/go << EOF
+#!/bin/sh
+
+sudo /home/pi/raspi-teletext-master/tvctl on
+
+# This loop restarts the teletext server if it stops.
+# To stop teletext you should kill this process and not vbit or raspi.
+until /home/pi/vbit/vbit | /home/pi/raspi-teletext-master/teletext -; do
+    echo "VBIT Server crashed with exit code $?.  Respawning.." >&2
+    sleep 1
+done
+EOF
+chmod +x go
+
+cat > /home/pi/vbit.sh << EOF
+#!/bin/sh
+# /etc/init.d/vbit.sh
+#
+
+# Some things that run always
+#
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    cd /home/pi
+    ./go &
+    echo "Starting script vbit"
+    echo "Could do more here"
+    ;;
+  stop)
+    echo "Stopping script vbit"
+    echo "Could do more here"
+    ;;
+  *)
+    echo "Usage: /etc/init.d/vbit {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
+EOF
+chmod +x vbit.sh
