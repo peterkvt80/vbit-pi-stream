@@ -649,11 +649,7 @@ void magInit(void)
 		// now got to add the packet data itself
 	}
 	for (i=0;i<maxThreads;i++) {
-		#ifdef WIN32
-		magThread[(i+1)%maxThreads].p=0;
-		#else
 		magThread[(i+1)%maxThreads]=0;
-		#endif
 		pthread_create(&magThread[(i+1)%maxThreads],NULL,(void*)domag,(void*)&r1); 	// r1 is just a dummy arg.
 		// printf("magInit %d done\n",i);
 	}
