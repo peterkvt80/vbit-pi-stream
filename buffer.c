@@ -326,10 +326,10 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			ptr2[1]=str[1];
 		}		
 
-		ptr2=strstr(ptr,"%g");	// year. 2 digits
+		ptr2=strstr(ptr,"%y");	// year. 2 digits
 		if (ptr2)
 		{
-			strftime(str,10,"%g",timeinfo); // TODO: mingw support
+			strftime(str,10,"%y",timeinfo);
 			ptr2[0]=str[0];
 			ptr2[1]=str[1];
 		}
