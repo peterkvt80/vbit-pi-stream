@@ -235,26 +235,8 @@ void PacketFiller(uint8_t *packet)
 /** A header has mag, row=0, page, flags, caption and time
  */
 void PacketHeader(char *packet ,unsigned char mag, unsigned char page, unsigned int subcode,
-			unsigned int control, char *caption)
+			unsigned int control)
 {
-	char *p;
-	char ch;
-	int i,j;
-	//static int lastsec;
-	
-	
-	// strcpy(caption,"Hello from Raspberry Pi");
-	// BEGIN: Special effect. Go to page 100 and press Button 1.
-	// Every page becomes P100.
-	/* not implemented on VBIT-Pi
-	if (BUTTON_GetStatus(BUTTON_1))
-	{
-		page=0;
-	}
-    // END: Special effect
-	*/
-	uint8_t hour, min, sec;
-	uint32_t utc;
 	uint8_t cbit;
 	PacketPrefix((uint8_t*)packet,mag,0);
 	packet[5]=HamTab[page%0x10];
@@ -289,51 +271,6 @@ void PacketHeader(char *packet ,unsigned char mag, unsigned char page, unsigned 
 	cbit=(control & 0x0380) >> 6;	// Shift the language bits C12,C13,C14. TODO: Check if C12/C14 need swapping. CHECKED OK.
 	if (control & 0x0040) cbit|=0x01;	// C11 serial/parallel
 	packet[12]=HamTab[cbit]; // C11 to C14 (C11=0 is parallel, C12,C13,C14 language)
-	strncpy(&packet[13],caption,32); // This is dangerously out of order! Need to range check and fill as needed
-	// Stuff the page number in. TODO: make it work with hex numbers etc.
-	p=strstr(packet,"mpp"); 
-	if (p) // if we have mpp, replace it with the actual page number...
-	{
-		*p++=mag+'0';
-		ch=page>>4; // page tens (note wacky way of converting digit to hex)
-		*p++=ch+(ch>9?'7':'0');
-		ch=page%0x10; // page units
-		*p++=ch+(ch>9?'7':'0');
-	}
-	// Stick the time in. Need to implement flexible date/time formatting
-	utc=0;	// This was time in seconds since midnight. This code now runs in buffer.c
-	sec=utc%60;
-	utc/=60;
-	min=utc%60;
-	hour=utc/60;
-	//if (lastsec!=sec)
-	//	xprintf(PSTR("%02d:%02d.%02d "),hour,min,sec);
-	//lastsec=sec;
-	//sprintf(&packet[37],"%02d:%02d.%02d",hour,min,sec);
-	
-	// Format the time string in the last 8 characters of the heading
-	j=0;
-	for (i=37;i<=44;i++)
-	{
-		if (packet[i]=='\r')	// Replace spurious double height. This can really destroy a TV!
-			packet[i]='?';
-		if ((packet[i]>='0') && (packet[i]<='9'))
-		{
-			packet[i]='0';
-			switch (j++)
-			{
-			case 0:packet[i]+=hour/10;break;
-			case 1:packet[i]+=hour%10;break;
-			case 2:packet[i]+= min/10;break;
-			case 3:packet[i]+= min%10;break;
-			case 4:packet[i]+= sec/10;break;
-			case 5:packet[i]+= sec%10;break;
-			default:
-				packet[i]='?';
-			}
-		}
-	}
-	Parity(packet,13);		
 } // Header
 
 void PageEnhancementDataPacket(char *packet, int mag, int row, int designationCode)
@@ -358,3 +295,44 @@ void SetTriplet(char *packet, int ix, int triplet)
 	packet[ix*3+5]=t[2];
 }
 
+// generate packet 8/30
+// format must be either 1 or 2
+// gets values from global settings in settings.c
+void Packet30(uint8_t *packet, uint8_t format)
+{
+	uint8_t *p;
+	
+	if (!(format == 1 || format == 2)){
+		PacketClear(packet,0); // only format 1 and 2 packets are valid. just output quiet packet
+		return;
+	}
+	
+	PacketPrefixValue(packet,8,30,0); // set the MRAG to 8/30, everything else zero
+	
+	p=packet+5;
+	
+	*p++=HamTab[((format & 0x02)<<2) | (multiplexedSignalFlag & 0x01)]; // designation code byte
+	
+	// initial teletext page, same for both formats
+	*p++=HamTab[initialPage & 0xF];                            // page units
+	*p++=HamTab[(initialPage & 0xF0) >> 4];                    // page tens
+	*p++=HamTab[initialSubcode & 0xF];                         // subcode S1
+	initialSubcode>>=4;
+	*p++=HamTab[((initialMag & 1) << 3) | (initialSubcode & 7)]; // subcode S2 + M1
+	initialSubcode>>=4;
+	*p++=HamTab[initialSubcode & 0xF];                         // subcode S3
+	initialSubcode>>=4;
+	*p++=HamTab[((initialMag & 6) << 1) | (initialSubcode & 3)]; // subcode S4 + M2, M3
+	
+	if (format == 1){
+		// packet is 8/30/1
+		
+		
+	} else {
+		// packet must be 8/30/2
+		
+		
+	}
+	
+	return;
+}

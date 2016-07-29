@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdlib.h>     /* strtol */
 #include "hamm.h"
+#include "settings.h"
 
 /** copyOL - Copy Output Line
  */
@@ -68,8 +69,7 @@ void PacketPrefixValue(uint8_t *packet, uint8_t mag, uint8_t row, int value);
  * \row : Row number 0..31
  */
 void PacketPrefix(uint8_t *packet, uint8_t mag, uint8_t row);
-void PacketHeader(char *packet ,unsigned char mag, unsigned char page, unsigned int subcode,
-			unsigned int control, char *caption);
+void PacketHeader(char *packet ,unsigned char mag, unsigned char page, unsigned int subcode, unsigned int control);
 
 extern volatile uint32_t UTC; // 10:00am
 

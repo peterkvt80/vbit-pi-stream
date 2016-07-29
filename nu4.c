@@ -71,7 +71,7 @@ void SubtitleOnair(char* response)
 	// First packet needs to be the header. Could well want suppress header too.
 	sprintf(response,"[SubtitleOnair]mag=%1x page=%02x",mag,page);
 	// PacketHeader(packet, mag, page, 0, 0x0002, "test");
-	PacketHeader(packet, mag, page, 0, 0x4002,"TEST header"); // Dummy
+	PacketHeader(packet, mag, page, 0, 0x4002); // Dummy
 	// dumpPacket(packet);
 	bufferPut(&magBuffer[8],packet);
 
@@ -90,7 +90,7 @@ void SubtitleOffair()
 	mag=(_page/0xff) & 0x07;
 	page=_page & 0xff;
 	// Control bits are erase+subtitle
-	PacketHeader(packet, mag, page, 0, 0x4002, "test");
+	PacketHeader(packet, mag, page, 0, 0x4002);
 	Parity(packet,13);
 	// May want to clear subtitle buffer at the same time
 	bufferPut(&magBuffer[8],packet);

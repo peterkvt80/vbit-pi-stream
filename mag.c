@@ -350,7 +350,6 @@ uint8_t getList(PAGE **txList,uint8_t mag, CAROUSEL *carousel)
 void domag(void)
 {
 	const uint16_t MAXLINE=200;
-	char header[32];
 	uint16_t i;
 	uint8_t txListIndex;	// The current page
 	uint8_t txListStart;	// Help prevent an endless loop
@@ -500,7 +499,7 @@ void domag(void)
 					// TX the header
 					//sprintf(header,"P%01d%02x %s",page->mag,page->page,page->filename);
 					// Create the header. Note that we force parallel transmission by ensuring that C11 is clear
-					PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040,header);
+					PacketHeader((char*)packet,page->mag,page->page,page->subcode,page->control & ~0x0040);
 					// The header packet isn't quite finished. stream.c intercepts headers and adds dynamic elements, page, date, network ID etc.
 					
 					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20); 
