@@ -1,0 +1,16 @@
+#!/bin/sh
+
+echo "Updating VBIT teletext system files"
+#raspi-teletext transmission
+# Pull the latest versions and rebuild them
+# If you have made changes to the code this might not merge so be careful. 
+cd /home/pi/raspi-teletext-master/
+git pull
+make clean
+make
+
+cd /home/pi/vbit
+git pull
+make
+
+
