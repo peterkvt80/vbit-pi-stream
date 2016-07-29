@@ -87,8 +87,7 @@ PI_THREAD (Stream)
 				case 0:
 					// packet 8/30 format 1
 					// this should occur during the first vbi following a clock second, but we're buffering stuff anyway so there's no point even trying to synchronise that finely
-					// TODO: finish packet30() so that it generates a proper packet
-					Packet30(packet, 1);
+					Packet30(packet, 1, serviceStatusString);
 					while(bufferPut(streamBuffer,(char*)packet)!=BUFFER_OK) delay(10); // force this to be added to buffer
 					//fprintf(stderr, "[stream] inserting 8/30 f1 in field %d line %d\n",field,line);
 					line++;

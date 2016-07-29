@@ -299,8 +299,9 @@ void SetTriplet(char *packet, int ix, int triplet)
 
 // generate packet 8/30
 // format must be either 1 or 2
+// status must be >= 20 bytes
 // gets values from global settings in settings.c
-void Packet30(uint8_t *packet, uint8_t format)
+void Packet30(uint8_t *packet, uint8_t format, char* status)
 {
 	uint8_t *p;
 	uint8_t c;
@@ -311,6 +312,7 @@ void Packet30(uint8_t *packet, uint8_t format)
 	int offsetHalfHours;
 	int year, month, day, hour, minute, second;
 	long modifiedJulianDay;
+	int statusLength;
 	
 	if (!(format == 1 || format == 2)){
 		PacketClear(packet,0); // only format 1 and 2 packets are valid. just output quiet packet
@@ -383,13 +385,19 @@ void Packet30(uint8_t *packet, uint8_t format)
 		*p++ = ((minute % 100 / 10 + 1) << 4) | (minute % 10 + 1);
 		*p++ = ((second % 100 / 10 + 1) << 4) | (second % 10 + 1);
 		
+		// bytes 22-25 in specification are marked as reserved though broadcasters have put text and data in them.
+		// we will leave them as spaces. Packet concludes with status string outside this if-else
+		
 	} else {
 		// packet must be 8/30/2 or 8/30/3
 		
 		
 	}
 	
-	memcpy(packet+25, "VBIT", 4); // temporarily stick in something for the status
+	statusLength = strlen(status);
+	if (statusLength > 20) statusLength = 20; // truncate illegal strings
+	memcpy(packet+25, status, statusLength); // copy status string
+	Parity(packet,25); // set parity on status string
 	
 	return;
 }

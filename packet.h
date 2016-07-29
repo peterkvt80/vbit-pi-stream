@@ -60,8 +60,9 @@ void PacketFiller(uint8_t *packet);
 /** Make a broadcast service data packet
  * \param packet : Byte array at least PACKETLENGTH bytes;
  * \param format : broadcase data service packet format (1 or 2)
+ * \param status : status string up to 20 characters
  */
-void Packet30(uint8_t *packet, uint8_t format);
+void Packet30(uint8_t *packet, uint8_t format, char* status);
 
 /** PacketPrefixValue
  * Call this when starting a new packet.
