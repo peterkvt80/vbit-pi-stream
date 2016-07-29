@@ -309,7 +309,7 @@ void Packet30(uint8_t *packet, uint8_t format)
 	time_t timeLocal;
 	time_t timeUTC;
 	int offsetHalfHours;
-	int year, month, day, hour, second;
+	int year, month, day, hour, minute, second;
 	long modifiedJulianDay;
 	
 	if (!(format == 1 || format == 2)){
@@ -366,18 +366,22 @@ void Packet30(uint8_t *packet, uint8_t format)
 		month = tempTime->tm_mon + 1;
 		day = tempTime->tm_mday;
 		hour = tempTime->tm_hour;
+		minute = tempTime->tm_min;
 		second = tempTime->tm_sec;
 		
 		//fprintf(stderr,"y %d, m %d, d %d\n", year, month, day);
 		modifiedJulianDay = calculateMJD(year, month, day);
-		fprintf(stderr,"Modified Julian day: %ld\n", modifiedJulianDay);
-		fprintf(stderr,"%ld %ld %ld %ld %ld\n", (modifiedJulianDay % 100000 / 10000 + 1),(modifiedJulianDay % 10000 / 1000 + 1),(modifiedJulianDay % 1000 / 100 + 1),(modifiedJulianDay % 100 / 10 + 1),(modifiedJulianDay % 10 + 1));
+		//fprintf(stderr,"Modified Julian day: %d\n", modifiedJulianDay);
 		// generate five decimal digits of modified julian date decimal digits and increment each one.
 		*p++ = (modifiedJulianDay % 100000 / 10000 + 1);
 		*p++ = ((modifiedJulianDay % 10000 / 1000 + 1) << 4) | (modifiedJulianDay % 1000 / 100 + 1);
 		*p++ = ((modifiedJulianDay % 100 / 10 + 1) << 4) | (modifiedJulianDay % 10 + 1);
 		
-		
+		//fprintf(stderr,"h %d, m %d, s %d\n", hour, minute, second);
+		// generate six decimal digits of UTC time and increment each one
+		*p++ = ((hour % 100 / 10 + 1) << 4) | (hour % 10 + 1);
+		*p++ = ((minute % 100 / 10 + 1) << 4) | (minute % 10 + 1);
+		*p++ = ((second % 100 / 10 + 1) << 4) | (second % 10 + 1);
 		
 	} else {
 		// packet must be 8/30/2 or 8/30/3
