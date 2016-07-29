@@ -8,6 +8,7 @@ uint8_t multiplexedSignalFlag;
 uint8_t initialMag;
 uint8_t initialPage;
 uint16_t initialSubcode;
+uint16_t NetworkIdentificationCode;
 
 void initConfigDefaults(void){
 	/* keep initialisation of defaults all in one place */
@@ -20,6 +21,8 @@ void initConfigDefaults(void){
 	initialMag = 1;
 	initialPage = 0x00;
 	initialSubcode = 0x3F7F;
+	NetworkIdentificationCode = 0x0000; // "Where a broadcaster has not been allocated an official NI value, bytes 13 and 14 of packet 8/30 format 1 should be coded with all bits set to 0"
+	
 }
 
 int readConfigFile(char *filename){

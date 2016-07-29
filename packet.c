@@ -311,7 +311,7 @@ void Packet30(uint8_t *packet, uint8_t format)
 	
 	p=packet+5;
 	
-	*p++=HamTab[((format & 0x02)<<2) | (multiplexedSignalFlag & 0x01)]; // designation code byte
+	*p++=HamTab[(format & 0x02) | (multiplexedSignalFlag & 0x01)]; // designation code byte
 	
 	// initial teletext page, same for both formats
 	*p++=HamTab[initialPage & 0xF];                            // page units
@@ -326,7 +326,8 @@ void Packet30(uint8_t *packet, uint8_t format)
 	
 	if (format == 1){
 		// packet is 8/30/1
-		
+		*p++=(NetworkIdentificationCode >> 8) & 0xFF;
+		*p++=NetworkIdentificationCode & 0xFF;
 		
 	} else {
 		// packet must be 8/30/2

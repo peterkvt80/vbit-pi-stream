@@ -19,6 +19,7 @@ extern uint8_t multiplexedSignalFlag;
 extern uint8_t initialMag;
 extern uint8_t initialPage;
 extern uint16_t initialSubcode;
+extern uint16_t NetworkIdentificationCode;
 
 // description of last error encountered reading config file
 extern char configErrorString[100];
