@@ -39,7 +39,7 @@
  *****************************************************************************/ 
 #include "packet.h"
 
-long calculateMJD(int year, int month, int day);
+double calculateMJD(int year, int month, int day);
 
 void dumpPacket(char* packet)
 {
@@ -370,12 +370,14 @@ void Packet30(uint8_t *packet, uint8_t format)
 		
 		//fprintf(stderr,"y %d, m %d, d %d\n", year, month, day);
 		modifiedJulianDay = calculateMJD(year, month, day);
-		//fprintf(stderr,"Modified Julian day: %ld\n", modifiedJulianDay);
-		//fprintf(stderr,"%ld %ld %ld %ld %ld\n", (modifiedJulianDay % 100000 / 10000 + 1),(modifiedJulianDay % 10000 / 1000 + 1),(modifiedJulianDay % 1000 / 100 + 1),(modifiedJulianDay % 100 / 10 + 1),(modifiedJulianDay % 10 + 1));
+		fprintf(stderr,"Modified Julian day: %ld\n", modifiedJulianDay);
+		fprintf(stderr,"%ld %ld %ld %ld %ld\n", (modifiedJulianDay % 100000 / 10000 + 1),(modifiedJulianDay % 10000 / 1000 + 1),(modifiedJulianDay % 1000 / 100 + 1),(modifiedJulianDay % 100 / 10 + 1),(modifiedJulianDay % 10 + 1));
 		// generate five decimal digits of modified julian date decimal digits and increment each one.
 		*p++ = (modifiedJulianDay % 100000 / 10000 + 1);
 		*p++ = ((modifiedJulianDay % 10000 / 1000 + 1) << 4) | (modifiedJulianDay % 1000 / 100 + 1);
 		*p++ = ((modifiedJulianDay % 100 / 10 + 1) << 4) | (modifiedJulianDay % 10 + 1);
+		
+		
 		
 	} else {
 		// packet must be 8/30/2 or 8/30/3
@@ -388,11 +390,11 @@ void Packet30(uint8_t *packet, uint8_t format)
 	return;
 }
 
-long calculateMJD(int year, int month, int day){
+double calculateMJD(int year, int month, int day){
 	// calculate modified julian day number
 	int a, m, y;
 	a = (14 - month) / 12;
 	y = year + 4800 - a;
 	m = month + (12 * a) - 3;
-	return day + ((153 * m + 1)/5) + (365 * y) + (y / 4) - (y / 100) + (y / 400) - 32045 - 2400000;
+	return day + ((153 * m + 1)/5) + (365 * y) + (y / 4) - (y / 100) + (y / 400) - 32045 - 2400000.5;
 }
