@@ -307,7 +307,7 @@ void Packet30(uint8_t *packet, uint8_t format)
 		return;
 	}
 	
-	PacketPrefixValue(packet,8,30,0); // set the MRAG to 8/30, everything else zero
+	PacketPrefixValue(packet,8,30,' '); // set the MRAG to 8/30, everything else spaces
 	
 	p=packet+5;
 	
@@ -325,15 +325,17 @@ void Packet30(uint8_t *packet, uint8_t format)
 	*p++=HamTab[((initialMag & 6) << 1) | (initialSubcode & 3)]; // subcode S4 + M2, M3
 	
 	if (format == 1){
-		// packet is 8/30/1
+		// packet is 8/30/0 or 8/30/1
 		*p++=(NetworkIdentificationCode >> 8) & 0xFF;
 		*p++=NetworkIdentificationCode & 0xFF;
 		
 	} else {
-		// packet must be 8/30/2
+		// packet must be 8/30/2 or 8/30/3
 		
 		
 	}
+	
+	memcpy(packet+26, "VBIT", 4); // temporarily stick in something for the status
 	
 	return;
 }

@@ -30,7 +30,7 @@ static char priorityCount[STREAMS];
 PI_THREAD (Stream)
 {
 	int mag=0;
-	uint8_t line=0;
+	uint8_t line=16; // start at 16, will get rolled over to 0 immediately
 	uint8_t i;
 	uint8_t result;
 	uint8_t holdCount=0;	/// If the entire service is on hold, we need to add lines, either filler or quiet
@@ -71,43 +71,59 @@ PI_THREAD (Stream)
 		// This scheme more or less works but there is no guarantee that it stays in sync.
 		// So we need to ensure that FillFIFO knows what this phase is and matches it to the output.
 		// The 7120/7121 DENC only does up to 16 lines on both fields. Line 17 is not available for us :-(
-		// ALSO: TODO: This scheme is stupid. If an iteration fails to output a line, the line counter is still
-		// incremented. This will mess up the field counting. 
-		// There is no synchronising of fields so it can and does go wrong.
+		// The lines and fields should stay synchronised so long as nothing increments a line without 
+		// actually pushing a packet onto the buffer.
 		// (carousel pages breaking in over normal pages)
 		if (line>=16)
 		{
 			line=0;
 			for (i=0;i<STREAMS;i++) hold[i]=0;	// Any holds are released now
+			
+			// may as well insert packet 8/30 on first line of vbi
+			if(field>=50) field = 0; // loop field counter every second
+			
+			switch (field)
+			{
+				case 0:
+					// packet 8/30 format 1
+					// this should occur during the first vbi following a clock second, but we're buffering stuff anyway so there's no point even trying to synchronise that finely
+					// TODO: finish packet30() so that it generates a proper packet
+					Packet30(packet, 1);
+					while(bufferPut(streamBuffer,(char*)packet)!=BUFFER_OK) delay(10); // force this to be added to buffer
+					//fprintf(stderr, "[stream] inserting 8/30 f1 in field %d line %d\n",field,line);
+					line++;
+					break;
+				
+				case 10:
+					// packet 8/30 format 2 LC 0
+					//fprintf(stderr, "[stream] not inserting 8/30 f2 in field %d line %d\n",field,line);
+					break;
+				
+				case 20:
+					// packet 8/30 format 2 LC 1
+					//fprintf(stderr, "[stream] not inserting 8/30 f2 in field %d line %d\n",field,line);
+					break;
+				
+				case 30:
+					// packet 8/30 format 2 LC 2
+					//fprintf(stderr, "[stream] not inserting 8/30 f2 in field %d line %d\n",field,line);
+					break;
+				
+				case 40:
+					// packet 8/30 format 2 LC 3
+					//fprintf(stderr, "[stream] not inserting 8/30 f2 in field %d line %d\n",field,line);
+					break;
+			}
+			
 			field++;
-		}	
-		// TODO: Really need to put a switch here to do packet 8/30.
-		// Packet 8/30 happens every 10 fields in this sequence:
-		// format 1, then format 2 label 1, label 2, label 3, label 4.
-		// So on line 0, 160, 320, 480, 640 we do something else. on 800 we reset to 0
-		// If the source has data AND the destination has space AND the magazine has not just sent an header
-		/*
-		switch (line) // but line is reset after 16 so we will need to think this one through.
-		{
-		case 0: // packet 8/30 format 1
-			break;
-		case 160: // packet 8/30 format 2 label 1
-			break;
-		case 320: // packet 8/30 format 2 label 2
-			break;
-		case 480: // packet 8/30 format 2 label 3
-			break;
-		case 640: // packet 8/30 format 2 label 4
-			break;
 		}
-		*/
+
 		if (!hold[mag])
 		{
 			holdCount=0;
 			// Pop a packet from a mag and push it to the stream		
 			// dumpPacket(magBuffer[mag].pkt);
 			result=bufferMove(streamBuffer,&(magBuffer[mag]));
-		
 
 			switch (result)
 			{
@@ -142,9 +158,8 @@ PI_THREAD (Stream)
 				// TODO: If this message comes up,
 				// Then add quiet or filler 8/25 packets.
 				// This RARELY happens except at the start
-				line++;	// And step the line counter otherwise we can get a lock
 				PacketQuiet(packet);
-				bufferPut(streamBuffer,(char*)packet);
+				if(bufferPut(streamBuffer,(char*)packet) == BUFFER_OK) line++;;
 			}
 		}
 		// printf("[Stream] mag=%d\n",mag); 

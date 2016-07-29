@@ -51,6 +51,16 @@ void PacketClear(uint8_t *packet, uint8_t value);
  */
 void PacketQuiet(uint8_t *packet);
 
+/** Make a filler packet
+ * \param packet : Byte array at least PACKETLENGTH bytes;
+ */
+void PacketFiller(uint8_t *packet);
+
+/** Make a broadcast service data packet
+ * \param packet : Byte array at least PACKETLENGTH bytes;
+ * \param format : broadcase data service packet format (1 or 2)
+ */
+void Packet30(uint8_t *packet, uint8_t format);
 
 /** PacketPrefixValue
  * Call this when starting a new packet.
