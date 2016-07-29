@@ -111,21 +111,21 @@ PI_THREAD (Stream)
 
 			switch (result)
 			{
-			case 3: 	// Buffer full. This is good because it means that we are not holding things up
+			case BUFFER_FULL: 	// Buffer full. This is good because it means that we are not holding things up
 			
 				//delay(1);	// Hold so we can see the message (WiringPi)
 				break;
-			case 4: 	// Source not ready. We expect mag to send us something very soon
+			case BUFFER_EMPTY: 	// Source not ready. We expect mag to send us something very soon
 				// If a stream has no pages, this branch will get called a lot
 				
 				hold[mag]=1;	// Might as well put it in hold. If this isn't here then the mag can grab ALL the packets
 				// delay(1);	// Hold so we can see the error
 				break;
-			case 2:		// Header row
+			case BUFFER_HEADER:		// Header row
 				// printf("%01d",mag);
 				hold[mag]=1;
 				// Intentional fall through
-			case 0:  // Normal row
+			case BUFFER_OK:  // Normal row
 				line++;	// Count up the lines sent
 				break;				
 			}
