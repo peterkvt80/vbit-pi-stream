@@ -301,6 +301,7 @@ void SetTriplet(char *packet, int ix, int triplet)
 void Packet30(uint8_t *packet, uint8_t format)
 {
 	uint8_t *p;
+	uint8_t c;
 	
 	if (!(format == 1 || format == 2)){
 		PacketClear(packet,0); // only format 1 and 2 packets are valid. just output quiet packet
@@ -326,8 +327,18 @@ void Packet30(uint8_t *packet, uint8_t format)
 	
 	if (format == 1){
 		// packet is 8/30/0 or 8/30/1
-		*p++=(NetworkIdentificationCode >> 8) & 0xFF;
-		*p++=NetworkIdentificationCode & 0xFF;
+		
+		/* NI code has reversed bits some reason */
+		c = (NetworkIdentificationCode >> 8) & 0xFF;
+		c = (c & 0x0F) << 4 | (c & 0xF0) >> 4;
+		c = (c & 0x33) << 2 | (c & 0xCC) >> 2;
+		c = (c & 0x55) << 1 | (c & 0xAA) >> 1;
+		*p++=c;
+		c = NetworkIdentificationCode & 0xFF;
+		c = (c & 0x0F) << 4 | (c & 0xF0) >> 4;
+		c = (c & 0x33) << 2 | (c & 0xCC) >> 2;
+		c = (c & 0x55) << 1 | (c & 0xAA) >> 1;
+		*p++=c;
 		
 	} else {
 		// packet must be 8/30/2 or 8/30/3
@@ -335,7 +346,7 @@ void Packet30(uint8_t *packet, uint8_t format)
 		
 	}
 	
-	memcpy(packet+26, "VBIT", 4); // temporarily stick in something for the status
+	memcpy(packet+25, "VBIT", 4); // temporarily stick in something for the status
 	
 	return;
 }
