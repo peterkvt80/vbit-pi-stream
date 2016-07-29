@@ -39,6 +39,8 @@
  *****************************************************************************/ 
 #include "packet.h"
 
+long calculateMJD(int year, int month, int day);
+
 void dumpPacket(char* packet)
 {
 	int i;
@@ -302,6 +304,13 @@ void Packet30(uint8_t *packet, uint8_t format)
 {
 	uint8_t *p;
 	uint8_t c;
+	time_t timeRaw;
+	struct tm * tempTime;
+	time_t timeLocal;
+	time_t timeUTC;
+	int offsetHalfHours;
+	int year, month, day, hour, second;
+	long modifiedJulianDay;
 	
 	if (!(format == 1 || format == 2)){
 		PacketClear(packet,0); // only format 1 and 2 packets are valid. just output quiet packet
@@ -340,6 +349,34 @@ void Packet30(uint8_t *packet, uint8_t format)
 		c = (c & 0x55) << 1 | (c & 0xAA) >> 1;
 		*p++=c;
 		
+		/* calculate number of seconds local time is offset from UTC */
+		timeRaw = time(NULL);
+		timeLocal = mktime(localtime(&timeRaw));
+		timeUTC = mktime(gmtime(&timeRaw));
+		offsetHalfHours = difftime(timeLocal, timeUTC) / 1800;
+		//fprintf(stderr,"Difference in half hours: %d\n", offsetHalfHours);
+		
+		// time offset code -bits 2-6 half hours offset from UTC, bit 7 sign bit
+		// bits 0 and 7 reserved - set to 1
+		*p++ = ((offsetHalfHours < 0) ? 0xC1 : 0x81) | ((abs(offsetHalfHours) & 0x1F) << 1);
+		
+		// get the time current UTC time into separate variables
+		tempTime = gmtime(&timeRaw);
+		year = tempTime->tm_year + 1900;
+		month = tempTime->tm_mon + 1;
+		day = tempTime->tm_mday;
+		hour = tempTime->tm_hour;
+		second = tempTime->tm_sec;
+		
+		//fprintf(stderr,"y %d, m %d, d %d\n", year, month, day);
+		modifiedJulianDay = calculateMJD(year, month, day);
+		//fprintf(stderr,"Modified Julian day: %ld\n", modifiedJulianDay);
+		//fprintf(stderr,"%ld %ld %ld %ld %ld\n", (modifiedJulianDay % 100000 / 10000 + 1),(modifiedJulianDay % 10000 / 1000 + 1),(modifiedJulianDay % 1000 / 100 + 1),(modifiedJulianDay % 100 / 10 + 1),(modifiedJulianDay % 10 + 1));
+		// generate five decimal digits of modified julian date decimal digits and increment each one.
+		*p++ = (modifiedJulianDay % 100000 / 10000 + 1);
+		*p++ = ((modifiedJulianDay % 10000 / 1000 + 1) << 4) | (modifiedJulianDay % 1000 / 100 + 1);
+		*p++ = ((modifiedJulianDay % 100 / 10 + 1) << 4) | (modifiedJulianDay % 10 + 1);
+		
 	} else {
 		// packet must be 8/30/2 or 8/30/3
 		
@@ -349,4 +386,13 @@ void Packet30(uint8_t *packet, uint8_t format)
 	memcpy(packet+25, "VBIT", 4); // temporarily stick in something for the status
 	
 	return;
+}
+
+long calculateMJD(int year, int month, int day){
+	// calculate modified julian day number
+	int a, m, y;
+	a = (14 - month) / 12;
+	y = year + 4800 - a;
+	m = month + (12 * a) - 3;
+	return day + ((153 * m + 1)/5) + (365 * y) + (y / 4) - (y / 100) + (y / 400) - 32045 - 2400000;
 }

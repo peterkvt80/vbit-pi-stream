@@ -13,6 +13,7 @@
 #include "tables.h"
 #include <string.h>
 #include <stdlib.h>     /* strtol */
+#include <time.h>
 #include "hamm.h"
 #include "settings.h"
 
