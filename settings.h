@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #define CONFIGFILE "vbit.conf" // default config file name
 #define NOCONFIG 1 // failed to open config file
@@ -10,8 +11,16 @@
 
 #define MAXCONFLINE 100 // max line length in config file
 
-extern char headerTemplate[]; // template string for generating header packets
+// template string for generating header packets
+extern char headerTemplate[];
 
+// settings for generation of packet 8/30
+extern uint8_t multiplexedSignalFlag;
+extern uint8_t initialMag;
+extern uint8_t initialPage;
+extern uint16_t initialSubcode;
+
+// description of last error encountered reading config file
 extern char configErrorString[100];
 
 void initConfigDefaults(void);

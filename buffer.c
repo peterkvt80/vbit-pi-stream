@@ -358,26 +358,7 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			ptr2[1]=str[1];
 		}
 
-		//strftime(str,9,"%H:%M/%S",timeinfo); // TODO: Use the template
-		//printf("The current time is %s.\n",str);
-		// This code below is the old clock stuff (locked to video)
-		//strncpy(&pkt[37],str,8);
-		// sprintf(&pkt[37],"%02d:%02d:%02d",hours,mins,secs);
-		// Parity(pkt,30);  <-- We need parity, but this kills it!
-		// Slightly changed version of Parity()
-		//pkt[36]=0x83; // Yellow text
-
-		for (i=PACKETSIZE-32;i<PACKETSIZE;i++)
-		{			
-			pkt[i]=ParTab[(uint8_t)(pkt[i]&0x7f)]; 
-#ifdef REVERSE
-			c=(uint8_t)pkt[i];
-			c = (c & 0x0F) << 4 | (c & 0xF0) >> 4;
-			c = (c & 0x33) << 2 | (c & 0xCC) >> 2;
-			c = (c & 0x55) << 1 | (c & 0xAA) >> 1;	
-			pkt[i]=(char)c;
-#endif			
-		}
+		Parity(pkt,13);
 		
 		returnCode=BUFFER_HEADER;	// Signal that this is a mag header
 	}	

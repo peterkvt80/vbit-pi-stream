@@ -1,6 +1,13 @@
 #include "settings.h"
 
-char headerTemplate[33]; 
+// template string for generating header packets
+char headerTemplate[33];
+
+// settings for generation of packet 8/30
+uint8_t multiplexedSignalFlag;
+uint8_t initialMag;
+uint8_t initialPage;
+uint16_t initialSubcode;
 
 void initConfigDefaults(void){
 	/* keep initialisation of defaults all in one place */
@@ -8,7 +15,11 @@ void initConfigDefaults(void){
 	// This is where the default header template is defined.
 	sprintf(headerTemplate," VBIT-PI %%%%# %%%%a %%d %%%%b%c%%H:%%M/%%S",0x83); // include alpha yellow code
 	
+	multiplexedSignalFlag = 0; // zero indicates teletext is multiplexed with video.
 	
+	initialMag = 1;
+	initialPage = 0x00;
+	initialSubcode = 0x3F7F;
 }
 
 int readConfigFile(char *filename){
