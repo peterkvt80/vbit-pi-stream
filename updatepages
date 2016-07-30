@@ -1,12 +1,11 @@
 #!/bin/sh
 
 #pages
-mkdir /home/pi/Pages
-mkdir /home/pi/teletext
-cd /home/pi/Pages
+cd ~/Pages
 rm -f pages.zip
 wget -O pages.zip https://www.dropbox.com/sh/ue14zczs71zemuh/AAC_8OPbgZQCLb9HT4XwtEC7a?dl=1
 unzip -o pages.zip
 
 #teefax pages
-svn checkout http://teastop.plus.com/svn/teletext/
+cd ~/teletext
+svn up
