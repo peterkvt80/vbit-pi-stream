@@ -64,7 +64,7 @@ function exitgo {
 # create a pid file
 if [ -f /var/tmp/vbit-go.pid ]; then
   OLDPID=\`cat /var/tmp/vbit-go.pid\`
-  RESULT=\`ps -ef | grep $OLDPID | grep "go"\`
+  RESULT=\`ps -ef | grep \$OLDPID | grep "go"\`
 
   if [ -n "\${RESULT}" ]; then
     echo "Script already running"
