@@ -326,15 +326,12 @@ void Packet30(uint8_t *packet, uint8_t format, char* status)
 	*p++=HamTab[(format & 0x02) | (multiplexedSignalFlag & 0x01)]; // designation code byte
 	
 	// initial teletext page, same for both formats
-	*p++=HamTab[initialPage & 0xF];                            // page units
-	*p++=HamTab[(initialPage & 0xF0) >> 4];                    // page tens
-	*p++=HamTab[initialSubcode & 0xF];                         // subcode S1
-	initialSubcode>>=4;
-	*p++=HamTab[((initialMag & 1) << 3) | (initialSubcode & 7)]; // subcode S2 + M1
-	initialSubcode>>=4;
-	*p++=HamTab[initialSubcode & 0xF];                         // subcode S3
-	initialSubcode>>=4;
-	*p++=HamTab[((initialMag & 6) << 1) | (initialSubcode & 3)]; // subcode S4 + M2, M3
+	*p++=HamTab[initialPage & 0xF];                                        // page units
+	*p++=HamTab[(initialPage & 0xF0) >> 4];                                // page tens
+	*p++=HamTab[initialSubcode & 0xF];                                     // subcode S1
+	*p++=HamTab[((initialMag & 1) << 3) | ((initialSubcode >> 4) & 0x7)];  // subcode S2 + M1
+	*p++=HamTab[(initialSubcode >> 8) & 0xF];                              // subcode S3
+	*p++=HamTab[((initialMag & 6) << 1) | ((initialSubcode >> 12) & 0x3)]; // subcode S4 + M2, M3
 	
 	if (format == 1){
 		// packet is 8/30/0 or 8/30/1
