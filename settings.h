@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include <stdint.h>
 
 #define CONFIGFILE "vbit.conf" // default config file name
