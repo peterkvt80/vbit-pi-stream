@@ -9,7 +9,7 @@ uint8_t initialMag;
 uint8_t initialPage;
 uint16_t initialSubcode;
 uint16_t NetworkIdentificationCode;
-char serviceStatusString[20];
+char serviceStatusString[21];
 
 void initConfigDefaults(void){
 	/* keep initialisation of defaults all in one place */
@@ -27,7 +27,7 @@ void initConfigDefaults(void){
 	
 	// here we set the default NI code. 0000 is rather a long string of zero bits, but that's what the spect tells us to do.
 	NetworkIdentificationCode = 0x0000; // "Where a broadcaster has not been allocated an official NI value, bytes 13 and 14 of packet 8/30 format 1 should be coded with all bits set to 0"
-	memcpy(serviceStatusString, "VBIT default", 12); // default service string.
+	strncpy(serviceStatusString, "VBIT default", 20); // default service string.
 }
 
 int readConfigFile(char *filename){

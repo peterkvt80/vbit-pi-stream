@@ -22,7 +22,7 @@ extern uint8_t initialMag;
 extern uint8_t initialPage;
 extern uint16_t initialSubcode;
 extern uint16_t NetworkIdentificationCode;
-extern char serviceStatusString[20];
+extern char serviceStatusString[21];
 
 // description of last error encountered reading config file
 extern char configErrorString[100];

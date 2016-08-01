@@ -378,9 +378,9 @@ void Packet30(uint8_t *packet, uint8_t format, char* status)
 		
 		//fprintf(stderr,"h %d, m %d, s %d\n", hour, minute, second);
 		// generate six decimal digits of UTC time and increment each one
-		*p++ = ((hour % 100 / 10 + 1) << 4) | (hour % 10 + 1);
-		*p++ = ((minute % 100 / 10 + 1) << 4) | (minute % 10 + 1);
-		*p++ = ((second % 100 / 10 + 1) << 4) | (second % 10 + 1);
+		*p++ = (((hour / 10) + 1) << 4) | ((hour % 10) + 1);
+		*p++ = (((minute / 10) + 1) << 4) | ((minute % 10) + 1);
+		*p++ = (((second / 10) + 1) << 4) | ((second % 10) + 1);
 		
 		// bytes 22-25 in specification are marked as reserved though broadcasters have put text and data in them.
 		// we will leave them as spaces. Packet concludes with status string outside this if-else
@@ -394,7 +394,7 @@ void Packet30(uint8_t *packet, uint8_t format, char* status)
 	statusLength = strlen(status);
 	if (statusLength > 20) statusLength = 20; // truncate illegal strings
 	memcpy(packet+25, status, statusLength); // copy status string
-	Parity(packet,25); // set parity on status string
+	Parity((char*)packet,25); // set parity on status string
 	
 	return;
 }
