@@ -43,7 +43,7 @@ chmod +x updatesystem
 chmod +x updatepages
 
 # System sets SD video on bootup 
-sed -i s/#sdtv_mode/sdtv_mode/ /boot/config.txt
+sudo sed -i s/#sdtv_mode/sdtv_mode/ /boot/config.txt
 
 echo "Installing scripts"
 #install scripts
