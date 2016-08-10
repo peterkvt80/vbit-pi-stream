@@ -45,8 +45,8 @@ void dumpPacket(char* packet)
 {
 	int i;
 	for (i=0;i<45;i++)
-		printf("%2x ",packet[i]); 
-	printf("\n");
+		fprintf(stderr,"%02x ",(uint8_t)packet[i]); 
+	fprintf(stderr,"\n");
 }
 
 /** Copy a line of teletext in MRG tti format.
@@ -57,9 +57,10 @@ void dumpPacket(char* packet)
  */
 uint8_t copyOL(char *packet, char *textline)
 {
-	int i;
+	int i, designationcode;
 	char* p;
 	long linenumber;
+	int triplet;
 	char ch;
 	// Get the line number
 	textline+=3;
@@ -74,6 +75,35 @@ uint8_t copyOL(char *packet, char *textline)
 		// printf("[copyOL]Fail=%s",textline);
 		return 0xff; // failed
 	}
+	// The following block of code is experimental support for page enhancement
+	// packets read from special OL rows in tti page files.
+	// If OL,28, packet is used the page file should not contain a non zero RE,
+	if (linenumber == 26 || linenumber == 28 || linenumber == 29)
+	{
+		// Special handler to allow stuffing enhancement packets in as OL rows
+		// Each 18 bits of data for a triplet is coded in the input line as
+		// three bytes least significant first where each byte contains 6 data
+		// bits in b0-b5. b7 should be set to avoid troublesome control codes
+		// such as linefeeds.
+		p = packet+5;
+		if (strlen(textline) >= 40){ // the body should be 40 bytes plus line ending(s)
+			designationcode = *textline & 0x0F;
+			*p++ = HamTab[designationcode]; // designation code
+			for (i = 1; i<=13; i++){
+				textline++;
+				triplet = *textline & 0x3F;
+				textline++;
+				triplet |= ((*textline & 0x3F) << 6);
+				textline++;
+				triplet |= ((*textline & 0x3F) << 12);
+				SetTriplet(packet, i, triplet);
+			}
+		} else {
+			return 0; // set packet number to 0 so this packet is not transmitted
+		}
+		return linenumber;
+	}
+	// end of experimental page enhancement code
 	for (p=packet+5;p<(packet+PACKETSIZE);p++)*p=' '; // Stuff with spaces in case the OL command is too short
 	for (p=packet+5;*textline && p<(packet+PACKETSIZE);textline++) // Stop on end of file OR packet over run
 	{
