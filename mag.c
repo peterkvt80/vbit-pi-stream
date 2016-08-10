@@ -559,52 +559,51 @@ void domag(void)
 				row=copyOL((char*)packet,str);
 				if (row)	// Only insert a valid row
 				{
-				  // Temperature: %%%T : 58.4
-					// Day of week: %%a : Sat
-					// Day of month: 
-					// 
+					if (row < 26){ // don't do anything to packets > 25
+						// Temperature: %%%T : 58.4
+						// Day of week: %%a : Sat
+						// Day of month: 
+						// 
 
-					// Special case for system temperature. Put %%%T to get temperature in form tt.t
-					#ifndef WIN32
-					tmpptr=strstr((char*)packet,"%%%T");
-					if (tmpptr) {
-						get_temp(strtemp);
-						strncpy(tmpptr,strtemp,4);
-					}
-					#endif
-					// Special case for system time. Put %%%%%%%%%%%%timedate to get time and date
-					tmpptr=strstr((char*) packet,"%%%%%%%%%%%%timedate");
-					if (tmpptr) {
-						get_time(strtemp);
-						strncpy(tmpptr,strtemp,20);
-					}
-					// Special case for world time. Put %t<+|-><hh> to get local time HH:MM offset by +/- half hours
-					for (;;)
-					{
-						tmpptr=strstr((char*) packet,"%t+");
-						if (!tmpptr) {
-							tmpptr=strstr((char*) packet,"%t-");
-						}
+						// Special case for system temperature. Put %%%T to get temperature in form tt.t
+						#ifndef WIN32
+						tmpptr=strstr((char*)packet,"%%%T");
 						if (tmpptr) {
-							get_offset_time(tmpptr);
+							get_temp(strtemp);
+							strncpy(tmpptr,strtemp,4);
 						}
-						else
-							break;
-					}
-					#ifndef WIN32
-					// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
-					tmpptr=strstr((char*)packet,"%%%%%%%%%%%%%%n");
-					if (tmpptr) {
-						// strncpy(tmpptr,"not yet working",15);
-						get_net(strtemp);
-						strncpy(tmpptr,strtemp,15);
-					}
-					#endif
-					// Finish the clock run in etc and parity ready for transmission
-					PacketPrefix(packet,page->mag,row);			
-					if (row < 26){ // don't mess with parity for packets that would be hammed
+						#endif
+						// Special case for system time. Put %%%%%%%%%%%%timedate to get time and date
+						tmpptr=strstr((char*) packet,"%%%%%%%%%%%%timedate");
+						if (tmpptr) {
+							get_time(strtemp);
+							strncpy(tmpptr,strtemp,20);
+						}
+						// Special case for world time. Put %t<+|-><hh> to get local time HH:MM offset by +/- half hours
+						for (;;)
+						{
+							tmpptr=strstr((char*) packet,"%t+");
+							if (!tmpptr) {
+								tmpptr=strstr((char*) packet,"%t-");
+							}
+							if (tmpptr) {
+								get_offset_time(tmpptr);
+							}
+							else
+								break;
+						}
+						#ifndef WIN32
+						// Special case for network address. Put %%%%%%%%%%%%%%n to get network address in form xxx.yyy.zzz.aaa with trailing spaces (15 characters total)
+						tmpptr=strstr((char*)packet,"%%%%%%%%%%%%%%n");
+						if (tmpptr) {
+							// strncpy(tmpptr,"not yet working",15);
+							get_net(strtemp);
+							strncpy(tmpptr,strtemp,15);
+						}
+						#endif
 						Parity((char*)packet,5);
 					}
+					PacketPrefix(packet,page->mag,row);
 					while (bufferPut(&magBuffer[mag],(char*)packet)==BUFFER_FULL) delay(20);
 				}
 			}
