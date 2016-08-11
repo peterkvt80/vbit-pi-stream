@@ -58,7 +58,7 @@ cat > ~/go << EOF
 export HOME=/home/pi
 
 # to change the directory in which vbit looks for pages edit the line below
-PAGESDIRECTORY=$HOME/teletext
+PAGESDIRECTORY=\$HOME/teletext
 
 PID=\$\$
 
@@ -86,7 +86,7 @@ sudo ~/raspi-teletext-master/tvctl on
 
 # This loop restarts the teletext server if it stops.
 # To stop teletext you should kill this process and not vbit or raspi.
-until $HOME/vbit/vbit --dir $PAGESDIRECTORY | $HOME/raspi-teletext-master/teletext -; do
+until \$HOME/vbit/vbit --dir \$PAGESDIRECTORY | \$HOME/raspi-teletext-master/teletext -; do
     trap 'exit' INT HUP TERM
     echo "VBIT Server crashed with exit code 0.  Respawning.." >&2
     sleep 1
