@@ -52,7 +52,7 @@
 // MAXCAROUSEL is an arbitrary number, the maximum number of carousels per magazine 
 // 16 is a good value. Should not have too many carousels as it slows the main service.
 // but increase this if you need more.
-#define MAXCAROUSEL 16
+#define MAXCAROUSEL 32
 
 int r1=0;	// Not actually used, just a dummy arg.
 
