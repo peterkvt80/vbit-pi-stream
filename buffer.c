@@ -313,7 +313,10 @@ uint8_t bufferMove(bufferpacket *dest, bufferpacket *src)
 			ptr2[0]=str[0];
 			#else
 			strftime(str,10,"%d",timeinfo); // mingw doesn't know %e
-			ptr2[0]=' ';
+			if (str[0] == '0')
+				ptr2[0]=' ';
+			else
+				ptr2[0]=str[0];
 			#endif
 			ptr2[1]=str[1];
 		}		
