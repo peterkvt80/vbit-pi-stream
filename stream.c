@@ -17,7 +17,7 @@
 // The stream buffer is 20 packets STREAMBUFFERSIZE
 
 // This should be 9. We want to add the subtitle streams
-#define STREAMS 8
+#define STREAMS 9
 
 bufferpacket streamBuffer[1];//  
 uint8_t streamPacket[STREAMBUFFERSIZE*PACKETSIZE*2]; // The 2 is extra storage to find out what is making it crash
@@ -137,7 +137,7 @@ PI_THREAD (Stream)
 				// delay(1);	// Hold so we can see the error
 				break;
 			case BUFFER_HEADER:		// Header row
-				// printf("%01d",mag);
+				// fprintf(stderr,"%01d",mag);
 				hold[mag]=1;
 				// Intentional fall through
 			case BUFFER_OK:  // Normal row

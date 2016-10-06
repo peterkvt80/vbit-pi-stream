@@ -318,6 +318,7 @@ void PageEnhancementDataPacket(char *packet, int mag, int row, int designationCo
 // The int is repacked with parity bits  
 void SetTriplet(char *packet, int ix, int triplet)
 {
+	fprintf(stderr,"SetTriplet");
 	uint8_t t[4];
 	if (ix<1) return;
 	vbi_ham24p(t,triplet);
