@@ -74,6 +74,7 @@ void SubtitleOnair(char* response)
 	PacketHeader(packet, mag, page, 0, 0x4002); // Dummy
 	// dumpPacket(packet);
 	bufferPut(&magBuffer[8],packet);
+	// fprintf(stderr,response);
 
 	while (!bufferIsEmpty(packetCache))
 	{
