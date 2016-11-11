@@ -601,6 +601,13 @@ void domag(void)
 							strncpy(tmpptr,strtemp,15);
 						}
 						#endif
+						// ======= VERSION ========
+						// %%%V version number eg. 1.00
+						tmpptr=strstr((char*) packet,"%%%V");
+						if (tmpptr) {
+							strncpy(tmpptr,"1.00",4); // @todo: Move this value to somewhere more obvious
+						}	
+						// Finally fix up the parity
 						Parity((char*)packet,5);
 					}
 					PacketPrefix(packet,page->mag,row);

@@ -24,7 +24,7 @@ uint8_t streamPacket[STREAMBUFFERSIZE*PACKETSIZE*2]; // The 2 is extra storage t
 // The lower the priority number, the faster the magazine runs.
 // This way you can choose which mags are more important.
 //                   mag 8 1 2 3 4 5 6 7
-static char priority[STREAMS]={5,3,3,3,3,2,5,9,1};	// 1=High priority,9=low. Note: priority[0] is mag 8, while priority mag[8] is the newfor stream!
+static char priority[STREAMS]={5,3,3,3,3,2,5,6,1};	// 1=High priority,9=low. Note: priority[0] is mag 8, while priority mag[8] is the newfor stream!
 static char priorityCount[STREAMS];
 
 PI_THREAD (Stream)
