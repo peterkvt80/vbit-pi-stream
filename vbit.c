@@ -166,6 +166,9 @@ int main (int argc, char** argv)
 		case NOCONFIG:
 			fprintf(stderr,"No config file found. Using default settings.\n");
 			break;
+		case UNKNOWNCONFIG:
+			fprintf(stderr,"Ignoring unrecognised config line: %s\n",configErrorString);
+			break;
 		case BADCONFIG:
 			fprintf(stderr,"Config file contains invalid setting: %s\n",configErrorString);
 			return 1;

@@ -10,6 +10,7 @@
 #define CONFIGFILE "vbit.conf" // default config file name
 #define NOCONFIG 1 // failed to open config file
 #define BADCONFIG 2 // config file malformed
+#define UNKNOWNCONFIG 3 // something unrecognised
 
 #define MAXCONFLINE 100 // max line length in config file
 

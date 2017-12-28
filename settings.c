@@ -33,25 +33,24 @@ void initConfigDefaults(void){
 int readConfigFile(char *filename){
 	FILE *file;
 	char str[MAXCONFLINE];
+	int er;
 	
 	initConfigDefaults(); // first set the default values that config file will override
 	
 	file=fopen(filename,"rb");
 	if (!file) return NOCONFIG; // no such file - keep default settings
 	
-	/* TODO: invent a simple config file syntax and parse it! */
 	while (file && !feof(file)){
 		if (!fgets(str,MAXCONFLINE,file)) // read a line
-			break; // end if read failed 
-		if (parseConfigLine(str)){ // split parsing out to another function
-			// if parsing line failed just bail out
-			fclose(file);
-			return BADCONFIG;
-		}
+			break; // end if read failed
+		
+		er = parseConfigLine(str);
+		if (er)
+			break;
 	}
 	
 	fclose(file);
-	return 0;
+	return er;
 }
 
 char configErrorString[100];
@@ -128,5 +127,5 @@ int parseConfigLine(char *configLine){
 	if(strlen(configLine) >= 30)
 		strcat(configErrorString,"...");
 	strcat(configErrorString,"\"");
-	return BADCONFIG;
+	return UNKNOWNCONFIG;
 }
